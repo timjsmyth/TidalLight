@@ -18,7 +18,9 @@ datadir = '../../ALAN_Map+Kd/' # Relative path to directory that contains Kd fil
 
 Python 3.6 is required to run this model
 To run this model open a command line in the TidalLight repository (Linux or WSL): `bash run_model_Zc.sh`
-This will run an example of some of the functionalities of the model. 
+
+This will run an example of some of the functionalities of the model, to see all possible commands: `python3 TidalLight_Model.py -h`. 
+
 **Resources:**
 
 The following modules are used in the model, for a theoretical understanding/explanation of these calculations 
