@@ -1,8 +1,11 @@
 # TidalLight
 A model capable of generating the solar, lunar, and artificial lightscape - in PAR (Broadband) OR Skye meter wavelengths R: 620-740nm, G: 495-560nm, B: 400-500nm (Spectral) - at and below surface of (theoretically) any global coastal position. 
+
 The model requires a location with associated tidal gauge data (recommend https://www.psmsl.org/ as a starting point) to permit accuracte modelling of tidal harmonics and subsequent tide levels. 
+
 A reference datum is selected by the user (default 10%).
 Defining a datum percetage (line 296, TidalLight_Model.py) determines the "Below Tide" values of the selected light source over the defined time period to calculate the total light received at this depth (Designed to mimic an area within the intertidal zone).
+
 Datum: Specified as a distance below the lowest astronomical tide for the time frame input
 
 Critical depth of the incoming light source can also be determined for validation with in-situ measurements in either Broadband or Spectral groups
