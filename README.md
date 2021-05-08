@@ -14,12 +14,14 @@ Critical depth of the incoming light source can also be determined for validatio
 Use a local copy in the following locations for any spectral model directory chain:
 
 Relevant to lines 81 & 85 of Falchi_Kd_Position.py
-datadir = '../../ALAN_Map+Kd/' # Relative path to directory that contains Kd files on local machine 
+datadir = '../../ALAN_Map+Kd/' *# Relative path to directory that contains Kd files on local machine* 
 
 Python 3.6 is required to run this model
-To run this model open a command line in the TidalLight repository (Linux or WSL): `bash run_model_Zc.sh`
+To run this model open a command line in the TidalLight repository (Linux or WSL): 
+`bash run_model_Zc.sh`
 
-This will run an example of some of the functionalities of the model, to see all possible commands: `python3 TidalLight_Model.py -h`. 
+This will run an example of some of the functionalities of the model, to see all possible commands: 
+`python3 TidalLight_Model.py -h`. 
 
 **Resources:**
 
