@@ -1,0 +1,17 @@
+Look-up-tables (LUT) created from the original data of Spitschan
+
+Following steps:
+1) In octave (octave-cli) run 
+~/ALAN/adam wright/radiative_transfer/twilight/IlluminationSpectraDataset/analysis/IlluminationSpectraDataset_Analysis_FullAnalysis.m
+
+There is another modified (Matlab) script running in this called:
+IlluminationSpectraDataset_Analysis_Absolute.m
+
+This produces several spectral files in the LUT sub-directory
+
+2) In the shell, run the script LUT/pasting_script.csh
+
+This creates the files Rural_Twilight.csv and Urban_Twilight.csv at 1nm and 1 degree (of solar elevation) resolution
+
+===
+Tim Smyth 22/2/2021

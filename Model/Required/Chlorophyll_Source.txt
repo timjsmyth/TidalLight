@@ -1,0 +1,8 @@
+The Chlorophyll data source is taken from a third party subroutine "abcase2_NatGeo.f" provided by Dr.Tim Smyth PML. 
+Original data presented in the script is sourced from the publications 
+Smith and Baker, 1981, Applied Optics 20(2), 177-184
+Prieur and Sathyendranath, 1981, Limnol. Oceanogr. 26(4), 671-689 for 400-700 nm; (data extended by eye to 350 nm)
+
+Smith and Baker, 1981 data contains data for pure water instance. 
+
+Prieur and Sathyendranath, 1981 contains the data used in this script as a reference index for spectral data for chlorophyll conversions. 
