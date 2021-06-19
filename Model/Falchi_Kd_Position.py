@@ -120,7 +120,7 @@ def read_falchi(latitude, longitude, sky_condition, input_flag):
    
    
    # IF Working from home using external harddrive as data store (mount D: drive int the "mnt" folder using sudo mkdir /mnt/d; sudo mount -t drvfs D: /mnt/d)
-   # datadir = "/mnt/d/ALAN_Map+Kd/"
+   # datadir = "/mnt/d/PML_LastDay/ALICE_Project/ALAN_Map+Kd/"
    month=0 # Create a counter variable to represent Months in conjunction with the Kd files
    for filename in sorted(os.listdir(datadir)): # Loop through all files in the "datadir"
       if filename.endswith(".nc"): # Only loop through NetCDF4 files

@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.integrate
 import numpy as np
+import pdb
 
 ######################################################################################################
 ######################################################################################################
@@ -173,6 +174,7 @@ def spectral_split(wavelength_col, intensity_col, df):
     GreenLight = (scipy.integrate.simps(Gi,Gx, dx=0.5))
     RedLight = (scipy.integrate.simps(Ri,Rx, dx=0.5))
     dataframe = spec_frame(RedLight, GreenLight, BlueLight)
+    # pdb.set_trace()
     print('Irr. (W/m^2), '
           'Blue:', BlueLight,
           'Green:', GreenLight,

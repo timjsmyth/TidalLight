@@ -6,9 +6,21 @@ import datetime
 from matplotlib import rc
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import pandas 
 
-
+def do_clipping(patches, special_y, keep_below=True, ax=None):
+    ax = ax or plt.gca()
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    height = ymax - ymin
+    if keep_below:
+        height = -height
+    clip_rect = Rectangle((x, special_y), xmax - xmin, height,
+                          transform=ax.transData)
+    for p in patches:
+        p.set_clip_path(clip_rect)
+    
 ######################### Residuals #######################
 def SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, sol, datum, datum_percentage):
     AA = np.ones(len(dec_day), dtype=int)
@@ -37,7 +49,7 @@ def SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, 
         ax[0].plot(dec_day, SolI_SSb.iloc[:,i], label=label + 'Sb', color=colour, linestyle='dashed', alpha=0.5)
         ax[0].plot(dec_day, SolI_SS.iloc[:,i], label=label + 'S', color=colour, linestyle='dotted', alpha=0.5)
         ax[0].set_title('Solar \n Difference between Surface and Seabed (Datum) (dot - dashed)')
-        ax[0].set_ylabel('Irradiance difference\n (W/m$^{-2}$)')
+        ax[0].set_ylabel('Irradiance difference\n (W m$^{-2}$)')
         ax[0].legend(prop={"size":7}, loc='upper right')
           
     
@@ -132,7 +144,7 @@ def Sol3d(dec_day, SolSpec, SolI_SSb, SolI_SSRes, SolI_SS, datum, datum_percenta
         ax.set_yticks([])
 
 ###################### Overlay Plots ####################################   
-def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum, datum_percentage,location):
+def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum, datum_percentage,location, figurepath):
     fig, ax = plt.subplots(4, figsize=(13.5,7.34))
     # fig.suptitle(f'Chlorophyll = {Chlorophyll}, fCDOM = {fCDOM}, backscatter = {backscatter}')
     fig.suptitle(f'Solar (Spectral) - {location}\n')
@@ -165,7 +177,7 @@ def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol,
     ax[0].set_yscale('symlog')
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
     # ax[0].set_ylabel('Irr (umol m^-2 s^-1)')
-    ax[0].set_ylabel('Irradiance\n (W/m$^{-2}$)')
+    ax[0].set_ylabel('Irradiance\n (W m$^{-2}$)')
     ax[0].set_title('Solar Irradiance at sea level')
 ##            ax[0].set_xlim([startdate, enddate])
     ax0.set_ylim([(-max(Io)/10), (max(Io)+max(Io)/10)])
@@ -196,7 +208,7 @@ def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol,
     #ax[1].legend()
     ax[1].set_title('Solar Irradiance seabed')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
-    ax[1].set_ylabel('Irradiance\n (W/m$^{-2}$)')
+    ax[1].set_ylabel('Irradiance\n (W m$^{-2}$)')
     ax[1].set_yscale('symlog')
     ax[1].yaxis.set_major_formatter(ScalarFormatter())
     ax1.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
@@ -218,17 +230,25 @@ def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol,
     ax[2].set_ylim([-(max(tide_h)/10), (max(tide_h)+max(tide_h)/10)])
 
 
-    # DAY/NIGHT
+    # # DAY/NIGHT
+    # for i in range(len(sol)):
+    #     if sol[i] < 1:
+    #         solar_vars = 1
+    #     else: 
+    #         solar_vars = 0
+         
+
     ax[3].set_title('Daylight hours')
     ax[3].plot(dec_day, sol, color='gold')
+
     ax[3].set_ylabel('Daylight')
     ax[3].set_xlabel("Julian Day")
-##            ax[3].set_xlim([startdate, enddate])
-##            plt.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.4)
+#            ax[3].set_xlim([startdate, enddate])
+#            plt.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.4)
     fig.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.5)
-    #fig.savefig(figurepath)
+    fig.savefig(figurepath +str('Solar.png'))
 
 
 
 if __name__ == '__main__':
-    print('This script should be run in conjunction with IntensityModel_Modules.py')
+    print('This script should be run in conjunction with TidalLight_Model.py')
