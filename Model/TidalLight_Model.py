@@ -68,6 +68,8 @@ def main():
     # TIDE
     aparser.add_argument("-t", "--tidal", action="store_true", help="Tidal model - REQUIRED: TEXT FILE CONTAINING TIDAL DATA FROM COASTAL OBSERVATORY")
     aparser.add_argument("-d", "--datum", action="store", type=float, help="Depth in metres to datum below Mean Spring tide")
+    aparser.add_argument("-dp", "--datum_percentage", action="store", type=float, help="Depth percentage of tidal range for Mean Spring tide")
+
     # LIGHT SOURCES
     aparser.add_argument("-s", "--solar", action="store_true", help="Solar Irradiance at surface and seabed")
     aparser.add_argument("-A", "--ALAN", action="store", type=float, help="0 = clear condition (2.88 PFFD), 1 = cloudy condition (6.24 PFFD), Irradiance at surface and seabed")
@@ -107,8 +109,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2000-01-10"; print("Start date: ", start_date)
-        end_date = "2000-01-24"; print("End date: ", end_date)
+        start_date = "2016-05-01"; print("Start date: ", start_date)
+        end_date = "2016-08-15"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -148,12 +150,12 @@ def main():
     # print("Diffusion coefficient for Spectra \n", kd_SS)
 
 ##  Split Spectra of Sun and Moon
-    blockPrint()
+    # blockPrint()
     path_name = os.getcwd() + "/Required/" 
     fname_Sol = path_name + 'Solarspectra.csv'
     fname_Lun = path_name + 'Moon_spectra.csv'
     fname_ALAN = path_name + 'Lightspectra.csv'
-    enablePrint()
+    # enablePrint()
     
 
     #blockPrint()
@@ -167,7 +169,7 @@ def main():
         input_flag = 1
     else:
         input_flag = 0
-    blockPrint()
+    # blockPrint()
     SolSpec, LunSpec, ASpec, ALAN_TYPE = SpectralSplit.spectra_run(fname_Sol, fname_Lun, fname_ALAN, input_flag)
     enablePrint()
 
@@ -195,8 +197,9 @@ def main():
     if args.longitude:
         longitude_deg = args.longitude
     
-    locations = pd.read_csv("../TamirLocDoc.csv")
+    
     if args.station:
+        locations = pd.read_csv("../TamirLocDoc.csv")
         # pdb.set_trace()
         # geo_location = ''
         stationID = "i" + str(args.station)
@@ -238,7 +241,10 @@ def main():
             ALAN_R = Kd_Falchi_Output["ALAN_R_(uW/m^2)"]; ALAN_G = Kd_Falchi_Output["ALAN_G_(uW/m^2)"]; ALAN_B = Kd_Falchi_Output["ALAN_B_(uW/m^2)"]; Kd_R = Kd_Falchi_Output["Kd_R"]; Kd_G = Kd_Falchi_Output["Kd_G"]; Kd_B = Kd_Falchi_Output["Kd_B"]; ALAN_total = Kd_Falchi_Output["Irr_(uW/m^2)"][0]; ALAN_mCd = Kd_Falchi_Output["Lum_(uCd/m^2)"][0]; Month_Kd = Kd_Falchi_Output["Month"] 
         
         R = 0; G = 0; B=0
-        data = {"Red": [R], "Green": [G], "Blue": [B]}
+        try:
+            data = {"Red": [ALAN_R[0]], "Green": [ALAN_G[0]], "Blue": [ALAN_B[0]]} # 0 = month counter from Falchi output, but Falchi Atlas does not very with time. Hence 0
+        except:
+            data = {"Red": [R], "Green": [G], "Blue": [B]}
         ASpec = pd.DataFrame(data,columns=["Red", "Green", "Blue"])
 
     # Assign empty variables
@@ -248,6 +254,8 @@ def main():
     TL = []; t = []; waterdepth = []; tide_h = []; Zc = []
     frames = []; Lun_frames = []; Sol_frames = []; A_frames = []
     date_record = []; day_summed =[]; fullmoon_mask = []
+    datum_intensity_Lunar = []; datum_intensity_ALAN = []; datum_intensity_Solar = []
+
 
     # col_names_r = ['620', '630', '640', '650', '660', '670', '680', '690', '700', '710', '720', '730', '740']
     # col_names_g = ['500', '510', '520', '530', '540', '550', '560']
@@ -290,10 +298,13 @@ def main():
 ##          append variables to lists
             TL.append(tide_level)
             t.append(T)
+        if args.datum_percentage:
+            datum_percentage = args.datum_percentage
+        else:
+            datum_percentage = 0.1
         if args.datum:
             datum = args.datum
         else:
-            datum_percentage = 0.1
             datum = round((max(TL)*datum_percentage),2) # Standard: use 10% of the max tide height       <-------------- Select datum %
 ##      Convert time back to DataFrame
         t_df = pd.to_datetime(t)
@@ -344,11 +355,9 @@ def main():
     month_counter = 0     
     # for delt in range(date_start, date_end):
     for model_date in daterange(date_start, date_end):
-        enablePrint()
         year = model_date.year # Year in datetime format
         day = model_date.day # Day in datetime format
         month = model_date.month # Month in datetime format
-        
         # Print first date of each month as a progress counter
         if month != month_counter: 
             month_counter = month
@@ -361,9 +370,11 @@ def main():
             KD = [kd_red, kd_green, kd_blue] # create a Kd array
             KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
 
-        
+        enablePrint()
+        print(model_date)
+        blockPrint()
         for hour in range(0,24):
-            # blockPrint()
+            
             minutes = np.arange(start=0, stop=1, step=t_incr) # create minute intervals
             for Minute in minutes:
                 H = ((hour+Minute)/24) # create Decimal component of the day 
@@ -371,6 +382,7 @@ def main():
                 if minute>=60:
                     minute = 0 
                 date = datetime.datetime(year, month, day, hour, minute, tzinfo=datetime.timezone.utc) # Create date - accurate to minute incr.
+                
                 date_record.append(date)
                 jday = date.timetuple().tm_yday # Retrieve date as a tuple
                 dday = int(jday)+H # Combine times as a decimal day
@@ -383,7 +395,6 @@ def main():
                 #     elif hour>12:
                 #         print("Sunset: ", hour,":",minute,"\nSolar Alt. (degrees)", altitude_deg)
 
-
                 # Playing Night time.. Day time: https://www.youtube.com/watch?v=Ln2Xq8fCNI8
                 if -18<=altitude_deg<=0:
                     twilight_df = twilight_spitschan.main(altitude_deg, "rural", "skye")
@@ -391,12 +402,14 @@ def main():
                 elif altitude_deg < -18:
                     solar_day = float(0)
                     Night = 2700
+                    night.append(Night) # Night values are assigned arbitrarily for plotting effect
+
                 else:
                     solar_day = float(1)
                     Night = -600
-                sol.append(solar_day)
-                night.append(Night) # Night values are assigned arbitrarily for plotting effect
+                    night.append(Night) # Night values are assigned arbitrarily for plotting effect
 
+                sol.append(solar_day)
 ######################################################## 
                 # IRRADIANCE CALCULATIONS
 ########################################################
@@ -452,7 +465,6 @@ def main():
                     A.append(Aint) # ALAN array at surface
 
 ######################################################## 
-
                 # LUNAR CALCULATIONS
                 if (args.lunar):
                     dt = Time(date) # Time within model
@@ -500,7 +512,7 @@ def main():
                     if Phase>=0.9:
                         fullmoon_mask.append(1)
                     else: 
-                        fullmoon_mask.append(0)         
+                        fullmoon_mask.append(0)
 ######################################################## 
                 # TIDAL CALCULATIONS  
 ########################################################
@@ -520,7 +532,6 @@ def main():
                     print(depth_to_datum)
                     
                     kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
-
 
 ########################################################
         # ATTENUATION OF INTENSITY TO SEABED                 
@@ -587,11 +598,11 @@ def main():
                             AIBT_AS = float(ASurface[aa]*np.exp(-KD[aa]*depth_to_datum))
                             if depth_to_datum==0:
                                 AIBT_AS = float(ASurface[aa])
+                            
                             ASb_array = np.append(ASb_array, AIBT_AS)
                             ARes_array = np.append(ARes_array, (ASurface[aa]-AIBT_AS))
                         AI_ASb = AI_ASb.append(pd.Series(ASb_array, index=AI_ASb.columns), ignore_index=True)
                         AI_ASRes = AI_ASRes.append(pd.Series(ARes_array, index=AI_ASRes.columns), ignore_index=True)
-
 ########################################################
 #             END TidalLight MODEL LOOP               
 ######################################################## 
@@ -599,9 +610,17 @@ def main():
 
     enablePrint()
 ##################################################################################################
-#                                Broadband Crit. Depth     ################################################################################################## 
+#                                Broadband Crit. Depth     
+################################################################################################## 
     Bb_Zc = [];R_Zc = [];G_Zc = [];B_Zc = []
-    for i in range(len(Kd_R)):
+    for i in range(len(KD)):
+        if args.ALAN:
+            datum_intensity_ALAN.append(sum(AI_ASb.iloc[:,i])) # Dosage ALAN
+        if args.lunar:
+            datum_intensity_Lunar.append(sum(LunI_LSb.iloc[:,i])) # Dosage Lunar
+        if args.solar:
+            datum_intensity_Solar.append(sum(SolI_SSb.iloc[:,i])) # Dosage Solar
+            
         A_zBb = []
         zBb = []
         critical_depth_Bb = []
@@ -612,6 +631,7 @@ def main():
                 threshold_intensity = args.threshold
             else:
                 threshold_intensity = 0.102 # Batnes et al., 2015 uW/m^2 # my attempt at converting uW/cm2 to uW/m2 = 0.03... # 4.1x10^-5 uW/cm^2/nm (from Tamir et al., 2017)  
+            
             for zz in range(len(crit_depth)):
                 AIBT_z = float(ALAN_total*np.exp(-KD_Bb*crit_depth[zz]))
                 A_zBb.append(AIBT_z)
@@ -621,6 +641,7 @@ def main():
                     break
                 else:
                     continue
+    
 ##################################################################################################
 #                               Spectral Crit. Depth 
 ##################################################################################################
@@ -666,7 +687,15 @@ def main():
                 critical_depth_R = [0]
             Bb_Zc.append(critical_depth_Bb[0])
             R_Zc.append(critical_depth_R[0]); G_Zc.append(critical_depth_G[0]); B_Zc.append(critical_depth_B[0])
-    
+    print(f"Dosage of Solar Irr. at datum\n{date_start} - {date_end}\nRGB:  {datum_intensity_Solar} J/m^2")
+    print(f"Dosage of Lunar Irr. at datum\n{date_start} - {date_end}\nRGB:  {datum_intensity_Lunar} \u03bcJ/m^2")
+    print(f"Dosage of ALAN at datum\n{date_start} - {date_end}\nRGB:  {datum_intensity_ALAN} \u03bcJ/m^2")
+
+    Sol_datum_dosage_df = pd.DataFrame(np.array(datum_intensity_Solar).reshape(-1,3), columns = list("RGB"))
+    Lun_datum_dosage_df = pd.DataFrame(np.array(datum_intensity_Lunar).reshape(-1,3), columns = list("RGB"))
+    ALAN_datum_dosage_df = pd.DataFrame(np.array(datum_intensity_ALAN).reshape(-1,3), columns = list("RGB"))
+
+
     #### FEEL LIKE THIS COULD BE CONDENSED INTO A FUNCTION..
 ################################################################################
 #                               Sums and checks 
@@ -722,24 +751,25 @@ def main():
 #############################################################
     location = geo_location
     skycondition = condition
+    figurepath = os.getcwd() + f"/Output/{location}_{date_start}-{date_end}_Datum_{datum_percentage}MST"
     if args.plots:
         # Broadband.Broadband(dec_day, A, tide_h, waterdepth, night, sol, aIBT, datum, I, lIBT, phase, Io, IBT, location, skycondition)
         # Tamir_2017.figure_5(AIBT_zR, AIBT_zG, AIBT_zB, zR, zG, zB)
         
         if args.solar:
-            Solplot_RGB.SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum,datum_percentage, location)
+            Solplot_RGB.SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum,datum_percentage, location, figurepath)
             # Solplot_RGB.Sol3d(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, datum,datum_percentage)
             # Solplot_RGB.SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, sol, datum, datum_percentage)
             
 
         if args.lunar:
-            Lunplot_RGB.LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT, datum, phase, location)
+            Lunplot_RGB.LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT, datum,datum_percentage, phase, location, figurepath)
             # Lunplot_RGB.Lun3d(dec_day, LunSpec, LunI_LSb, LunI_LSRes, LunI_LS, datum)
             # Lunplot_RGB.LunRes(dec_day, LunSpec, LunI_LS, LunI_LSb, LunI_LSRes, tide_h, waterdepth, sol, datum)
             
         
         if args.ALAN:
-            Aplot_RGB.AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, aIBT, col_names_SS, datum, location, skycondition, ALAN_TYPE)
+            Aplot_RGB.AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, aIBT, col_names_SS, datum, datum_percentage, location, skycondition, ALAN_TYPE, figurepath)
             # Aplot_RGB.A3d(dec_day, ASpec, AI_ASb, AI_ASRes, AI_AS, datum)
             # Aplot_RGB.ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, sol, datum)
         
@@ -749,12 +779,14 @@ def main():
     #                   Outputs 
     ###############################################
     print("Output section still requires updating don't know what the new standard 'TidalLight' model output should be")
-    pdb.set_trace()
+    # pdb.set_trace()
+    Dosage = pd.concat([ALAN_datum_dosage_df, Lun_datum_dosage_df, Sol_datum_dosage_df], keys=["ALAN_(uW/m2)", "Lunar_(uW/m2)", "Solar_(uW/m2)"], axis=1)
+    Dosage.to_csv(f"Output/Dosage_{year}_{location}.csv")
     if args.output:
         directory = os.getcwd()+"/Output/"
         if not os.path.exists(directory):
             os.mkdir(directory)
-        Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Depth-{datum}m-above-max-low-tide.csv" # filename of data output
+        Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
         datapath = os.getcwd() + "/Output/" + Output_fname # path of data file output
         sta = timeit.default_timer()
         df0 = pd.DataFrame({'Location_Lat (deg)' : latitude_deg, 'Location_Long (deg)' : longitude_deg, 'time_increment (m)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_range (m)' : tide_h, 'date' : date_record, 'Jday (decimal)' : dec_day, 'Kd Blue' : kd_blue, 'Kd Green' : kd_green, 'Kd Red' : kd_red, 'Kd Bb' : KD_Bb})
@@ -789,9 +821,9 @@ def main():
                 NLunI_LSb.iloc[:,ll] = (LunI_LSb.iloc[:,ll]/max(LunI_LSb.iloc[:,ll]))
                 NLunI_LS.iloc[:,ll] = (LunI_LS.iloc[:,ll]/max(LunI_LS.iloc[:,ll]))
             df2 = pd.DataFrame({'Lunar_Alt (deg)' : alt, 'Lunar_Az (deg)': az, 'phase' : phase, 'I_atmos' : I_atmos, 'BB_I(uW/m2)': I, 'BB_I_Below_tide(uW/m2)' : lIBT})
-            Lresult = pd.concat([df0, df2, NLunI_LS, NLunI_LSb, LunI_LS, LunI_LSb, LunI_LSRes], keys= ['', 'Lunar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
-            if change_output_name == "Y":
-                Output_fname = identifier + Output_fname
+            Lresult = pd.concat([df0, df2, NLunI_LS, NLunI_LSb, LunI_LS, LunI_LSb, LunI_LSRes, ], keys= ['', 'Lunar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            # if change_output_name == "Y":
+            #     Output_fname = identifier + Output_fname
             Lresult.to_csv('Output/Lunar_' + Output_fname)
 
         if args.ALAN:
@@ -803,15 +835,14 @@ def main():
                 NAI_AS.iloc[:,aa] = (AI_AS.iloc[:,aa]/max(AI_AS.iloc[:,aa]))   
             df3 = pd.DataFrame({'binary_day' : sol, 'sky_condition': condition, 'Falchi_ALAN (mCd/m^2)': ALAN_mCd, 'ALAN_Bb (uW/m^2)' : ALAN_total, 'ALAN_BB_Below_tide(uW/m^2)': aIBT}) 
             Aresult = pd.concat([df0, df3, NAI_AS, NAI_ASb, AI_AS, AI_ASb, AI_ASRes], keys= ['','ALAN', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
-            Output_fname = f"{geo_location}_DATA_{sky_condition}_{date_start}-{date_end}.csv" # filename of data output
+            Output_fname = f"{geo_location}_DATA_{sky_condition}_{tt_s}-{tt_e}_Datum-{datum_percentage}MST.csv" # filename of data output (MST = Mean Spring Tide)
             # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
             if args.station:
                 Output_fname = str(args.station) + "_" + Output_fname
                 d = {"ALAN_R_Depth[620-740nm](uW/m2)": A_zR, "R_Depth(m)": zR, "ALAN_G_Depth[495-560nm](uW/m2)": A_zG, "G_Depth(m)": zG, "ALAN_B_Depth[400-500nm](uW/m2)": A_zB, "B_Depth(m)": zB,  "ALAN_Bb_Depth(uW/m2)" : A_zBb, "Kd_Red": KD[0], "Kd_Green": KD[1],"Kd_Blue": KD[2], "crit_depth_R(m)" : critical_depth_R[0], "crit_depth_G(m)" : critical_depth_G[0], "crit_depth_B(m)" : critical_depth_B[0], "crit_depth_Bb(m)" : critical_depth_Bb[0]} # nm range taken from (Davies et al., 2020) the source of the Hydrolight dataset
                 Tamir_comparison = pd.DataFrame({k:pd.Series(v) for k,v in d.items() })
                 Tamir_comparison.to_csv(f'Output/ALAN_TAMIR_COMPARISON_i' + Output_fname)
-            Aresult.to_csv(f'Output/ALAN_i' + Output_fname)
-
+            Aresult.to_csv(f'Output/ALAN_' + Output_fname)
         sto = timeit.default_timer()
         print('Data output completed in', (sto-sta)/60, 'minutes')
         plt.show()

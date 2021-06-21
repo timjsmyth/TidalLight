@@ -56,7 +56,7 @@ def A3d(dec_day, SS_wavenm, AI_ASb, AI_ASRes, AI_AS, col_names_SS, datum, locati
     ax = fig.add_subplot(1,2,1, projection='3d')
     el=6; az=-99; distance=7
     
-    ylab='Wavelength (nm)'; xlab='Julian Day'; zlab='Normalized Irradiance\n (W/m$^{-2}$)'
+    ylab='Wavelength (nm)'; xlab='Julian Day'; zlab='Normalized Irradiance\n (W m$^{-2}$)'
     fig.suptitle(f'Normalized Spectral Irradiance at {datum}m below Mean Sea-level')
     #DATA = SolI_SSb # plot 1,1,1
     #DATA1 = SolI_SSRes # plot 1,1,2
@@ -104,7 +104,7 @@ def A3d(dec_day, SS_wavenm, AI_ASb, AI_ASRes, AI_AS, col_names_SS, datum, locati
         Axes3D.plot(ax, xs=dec_day, ys=AI_ASRes.iloc[:,i]/max(AI_ASRes.iloc[:,i]), zs=SS_wavenm[i], zdir='y', color=colour)
 
 ###################### Overlay Plots ####################################   
-def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, aIBT, col_names_SS, datum, location, skycondition, ALAN_TYPE):
+def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, aIBT, col_names_SS, datum, datum_percentage, location, skycondition, ALAN_TYPE, figurepath):
     fig, ax = plt.subplots(4, figsize=(13.5,7.34))
     fig.suptitle(f'{ALAN_TYPE} - ALAN (Spectral + Broadband) ({skycondition})- {location}\n')
     #fig.suptitle(f'Chlorophyll = {args.chlorophyll}, fCDOM = {args.CDOM}, backscatter = {args.backscatter}')
@@ -136,7 +136,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
     # ax[0].set_yscale('symlog')
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
     # ax[0].set_ylabel('Irr (umol m^-2 s^-1)')
-    ax[0].set_ylabel('Irradiance\n (\u03bcW/m$^{-2}$)')
+    ax[0].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     ax[0].set_title('ALAN Irradiance at sea level')
     ax0.set_ylim([(-max(A)/10), (max(A)+max(A)/10)])
     
@@ -165,7 +165,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
     #ax[1].legend()
     ax[1].set_title('ALAN Irradiance at datum')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
-    ax[1].set_ylabel('Irradiance\n (\u03bcW/m$^{-2}$)')
+    ax[1].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[1].set_yscale('symlog')
     ax[1].yaxis.set_major_formatter(ScalarFormatter())
     ax1.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
@@ -178,13 +178,13 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
     ax2i.axes.get_yaxis().set_visible(False)
     ax[2].plot(dec_day, waterdepth, label='water depth', color='royalblue')
     ax[2].set_title('Height of water column')
-    ax[2].set_ylabel(f'Water column\n above datum {datum}m', color='black')
+    ax[2].set_ylabel(f'Water column\n above datum at {int(datum_percentage*100)}%', color='black')
     ax2 = ax[2].twinx()
     ax2.axhline(y=datum, xmin=0, xmax=366, color='cadetblue', alpha = 0.5, linestyle='dashed', label='datum')
-    ax2.legend(prop={"size":8}, loc='upper right')
     ax2.plot(dec_day, tide_h, label='tide', color='cadetblue', alpha=0.5)
+    ax2.legend(prop={"size":8}, loc='upper right')
     ax2.set_ylabel('Tidal range (m)', color='cadetblue', labelpad=15)
-    ax[2].set_ylim([-(max(tide_h)/10), (max(tide_h)+max(tide_h)/10)])  
+    ax[2].set_ylim([-(max(tide_h)/10), (max(tide_h)+max(tide_h)/10)])
 
     # DAY/NIGHT
     ax[3].set_title('Daylight hours')
@@ -194,7 +194,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
 ##            ax[3].set_xlim([startdate, enddate])
 ##            plt.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.4)
     fig.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.5)
-    #fig.savefig(figurepath)
+    fig.savefig(figurepath +str('ALAN.png'))
 
 
 
