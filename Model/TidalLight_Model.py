@@ -133,8 +133,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2016-06-05"; print("Start date: ", start_date)
-        end_date = "2016-07-04"; print("End date: ", end_date)
+        start_date = "2020-01-01"; print("Start date: ", start_date)
+        end_date = "2020-12-31"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -196,7 +196,8 @@ def main():
 
 ##  Define constants, components and arrays    
     Isc = 1366 #(W/m^2) #, 2400 PPFD umol/m^2/s PAR = 400:700nm range Intensity provided in W/m^2 for spectra
-    k_atmos = 0.01 # FIXED - CONSIDER CHANGING FOR SPECTRAL DATA, HOWEVER SUNRISE AND SET ARE DIFFICULT TO MODEL
+    #k_atmos = 0.01 # FIXED - CONSIDER CHANGING FOR SPECTRAL DATA, HOWEVER SUNRISE AND SET ARE DIFFICULT TO MODEL
+    k_atmos = 0.21 # Update from Jeff Conrad 
     
     ###################################### Select location ####################################################
     geo_location = str(args.location)
@@ -416,6 +417,7 @@ def main():
                 #         print("Sunset: ", hour,":",minute,"\nSolar Alt. (degrees)", altitude_deg)
 
                 # Playing Night time.. Day time: https://www.youtube.com/watch?v=Ln2Xq8fCNI8
+                #enablePrint()
                 if -18<=altitude_deg<=0:
                     twilight_df = twilight_spitschan.main(altitude_deg, "rural", "skye")
                     solar_day=float(0.5)
@@ -428,7 +430,8 @@ def main():
                     solar_day = float(1)
                     Night = -600
                     night.append(Night) # Night values are assigned arbitrarily for plotting effect
-
+                #blockPrint()
+                
                 sol.append(solar_day)
 ######################################################## 
                 # IRRADIANCE CALCULATIONS
@@ -488,6 +491,10 @@ def main():
 ######################################################## 
                 # LUNAR CALCULATIONS
                 if (args.lunar):
+                    # Lunar albedo: 
+                    # Lane & Irvine (1973) ~12% for full moon DOI: 10.1086/111414
+                    # Buratti et al., (1996) ~16% (zero phase value)
+                    Lunar_albedo = 0.16
                     dt = Time(date) # Time within model
                     EarthMoon = get_moon(dt, location) # Relative positioning              
                     moon_icrs = EarthMoon.transform_to('icrs') # Relative Ephemeris calculation    
@@ -496,11 +503,10 @@ def main():
                     az_ = float(Angle(moonaltaz.az).degree) # Lunar Azimuth                     
                     Phase = float(moon.moon_illumination(dt)) # Lunar Phase 
                     Phase_lb = lumme_bowell(moon.moon_phase_angle(dt).value) # Lunar Phase function - Lumme-Bowell
-
-                    #albedo_phased = 0.12*Phase # Lunar albedo ~12% = 0.12 for full moon (Lane & Irvine, 1973) DOI: 10.1086/111414 
-                    albedo_phased = 0.12*Phase_lb # Lunar albedo ~12% = 0.12 for full moon (Lane & Irvine, 1973) DOI: 10.1086/111414 
+                    #albedo_phased = Lunar_albedo*Phase 
+                    albedo_phased = Lunar_albedo*Phase_lb 
                     # LUNAR REFLECTION CALC. 
-                    Lunar_refl = (Isc/np.pi)*albedo_phased*0.000064177 # 0.000064177 = sr value for subtending angle of the lunar disc (0.52 degrees --> sr)
+                    Lunar_refl = (Isc/np.pi)*albedo_phased*0.000064692 # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
                     #airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
                     airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:

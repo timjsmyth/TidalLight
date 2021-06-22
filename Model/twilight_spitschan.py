@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import argparse
 import pdb
-
-
+import warnings
+warnings.simplefilter('ignore', np.RankWarning)
 
 def main(solar_elevation, atmosphere_type, spectral_group):
       
@@ -61,8 +61,8 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          indexl = np.min(np.where(np.float(solar_elevation) > elevation_angles))
          
          # extract the two columns needed for the interpolation
-         upper_spectrum = df.iloc[:,indexu].to_numpy()
-         lower_spectrum = df.iloc[:,indexl].to_numpy()
+         upper_spectrum = df.iloc[:,indexu+1].to_numpy() # bug fix within the df to add index+1 [wavelength is column 0]
+         lower_spectrum = df.iloc[:,indexl+1].to_numpy() # bug fix within the df to add index+1 [wavelength is column 0]
          
          # setup empty array for the interpolated values
          actual_spectrum = np.zeros(len(lower_spectrum))
@@ -75,7 +75,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
 
       # No need for interpolation within the LUT if integer value of solar_elevation (0 -> -18) specified
       else:
-         actual_spectrum = df.iloc[:,index[0]].to_numpy() 
+         actual_spectrum = df.iloc[:,index[0]+1].to_numpy() # bug fix within the df to add index+1 [wavelength is column 0]
       
       # 3. Output as hyper, multi or broadband spectral (RGB)
       # i) hyperspectral
