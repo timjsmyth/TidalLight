@@ -46,6 +46,8 @@ import scipy.integrate
 import os
 import sys
 import pdb
+import warnings
+warnings.simplefilter('ignore', np.RankWarning)
 
 # Disable
 def blockPrint():
@@ -58,8 +60,30 @@ def enablePrint():
 def daterange(date_start, date_end):
     for n in range(int((date_end - date_start).days)):
         yield date_start + datetime.timedelta(n)
-    
 
+def get_air_mass_kasten_young(altitude_deg):
+    # Original C
+    # return 1.0 / (sin(altitude_deg * DtoR) + 0.50572 * pow(altitude + 6.07995, -1.6364));
+    return 1.0 / (np.sin(np.radians(altitude_deg)) + 0.50572 * (altitude_deg + 6.07995)**(-1.6364))
+
+# Lumme-Bowell (1981) 
+# phase_angle in radians 
+def lumme_bowell(phase_angle):
+    Q = 0.108    # multiple-scattering fraction 
+
+    #TO DO: find more precise angle for smooth curve? 
+    if (np.degrees(phase_angle) < 25.07):
+       Phi1 = 1.0 - np.sin(phase_angle) / (0.124 + 1.407 * np.sin(phase_angle) - 0.758 * np.sin(phase_angle) * np.sin(phase_angle))
+    else:
+       Phi1 = np.exp(-3.343 * (np.tan(phase_angle / 2.0))**0.632)
+
+    # multiple scattering 
+    Phi_m = 1.0 / np.pi * (np.sin(phase_angle) + (np.pi - phase_angle) * np.cos(phase_angle))
+
+    phase_factor = (1.0 - Q) * Phi1 + Q * Phi_m
+
+    return phase_factor   
+       
 def main():
 
     
@@ -73,7 +97,7 @@ def main():
     # LIGHT SOURCES
     aparser.add_argument("-s", "--solar", action="store_true", help="Solar Irradiance at surface and seabed")
     aparser.add_argument("-A", "--ALAN", action="store", type=float, help="0 = clear condition (2.88 PFFD), 1 = cloudy condition (6.24 PFFD), Irradiance at surface and seabed")
-    aparser.add_argument("-l", "--lunar", action="store_true", help="Lunar Irradaiance at surface and seabed, Alt, Az, distance") 
+    aparser.add_argument("-l", "--lunar", action="store_true", help="Lunar Irradiance at surface and seabed, Alt, Az, distance") 
     # MODEL PARAMETERS
     aparser.add_argument("-T", "--time", action="store", type=float, help="Time increment in decimal hours i.e. 0.25 = 15 minutes")
     aparser.add_argument("-lat", "--latitude",type=float, action="store", help="Longitude in decimal degrees")
@@ -109,8 +133,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2016-05-01"; print("Start date: ", start_date)
-        end_date = "2016-08-15"; print("End date: ", end_date)
+        start_date = "2016-06-05"; print("Start date: ", start_date)
+        end_date = "2016-07-04"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -133,10 +157,6 @@ def main():
     tdiff_day = delta.days
     year = date_start.year
     start_month = date_start.month
-
-
-
-
 
     # Chlorophyll = args.chlorophyll; print('Chlorophyll = ', Chlorophyll)
     # fCDOM = args.CDOM; print('fCDOM = ', fCDOM)
@@ -416,7 +436,8 @@ def main():
                 # SOLAR CALCULATION 
                 if (args.solar):
 ##                      Calculate variable using Pysolar
-                    airmass = get_air_mass_ratio(altitude_deg)  ###### NOTE ####### diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
+                    #airmass = get_air_mass_ratio(altitude_deg)  ###### NOTE ####### diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
+                    airmass = get_air_mass_kasten_young(altitude_deg)
 ##                      Calculate Intensity
                     Iatmos = Isc*(1+0.0344*np.cos(np.deg2rad(360.*float(dday)/365)))
 ##                      Calculate Iatmos for each wavelength
@@ -471,14 +492,17 @@ def main():
                     EarthMoon = get_moon(dt, location) # Relative positioning              
                     moon_icrs = EarthMoon.transform_to('icrs') # Relative Ephemeris calculation    
                     moonaltaz = moon_icrs.transform_to(AltAz(obstime=dt, location=location)) # Transform positioning to Alt, Az
-                    alt_ = float(Angle(moonaltaz.alt).degree) # Lunar Azimuth
-                    az_ = float(Angle(moonaltaz.az).degree) # Lunar Altitude                     
-                    Phase = float(moon.moon_illumination(dt)) # Lunar Phase                       
-                    albedo_phased = 0.12*Phase # Lunar albedo ~12% = 0.12 for full moon (Lane & Irvine, 1973) DOI: 10.1086/111414 
-                    # LUNAR REFLECTION CALC.
+                    alt_ = float(Angle(moonaltaz.alt).degree) # Lunar Altitude 
+                    az_ = float(Angle(moonaltaz.az).degree) # Lunar Azimuth                     
+                    Phase = float(moon.moon_illumination(dt)) # Lunar Phase 
+                    Phase_lb = lumme_bowell(moon.moon_phase_angle(dt).value) # Lunar Phase function - Lumme-Bowell
+
+                    #albedo_phased = 0.12*Phase # Lunar albedo ~12% = 0.12 for full moon (Lane & Irvine, 1973) DOI: 10.1086/111414 
+                    albedo_phased = 0.12*Phase_lb # Lunar albedo ~12% = 0.12 for full moon (Lane & Irvine, 1973) DOI: 10.1086/111414 
+                    # LUNAR REFLECTION CALC. 
                     Lunar_refl = (Isc/np.pi)*albedo_phased*0.000064177 # 0.000064177 = sr value for subtending angle of the lunar disc (0.52 degrees --> sr)
-                    airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
-                    
+                    #airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
+                    airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:
                         Iol = 0
                     elif altitude_deg>0:
@@ -495,7 +519,9 @@ def main():
                     LSurface = np.array([])
                     LAtmos = np.array([])
                     for ll in range(len(LunSpec.columns)):
-                        Lunar_refl_LS = (LunSpec.iloc[:,ll]) # spectral data is a measurment which has been extrapolated to top of atmosphere. 
+                        #Lunar_refl_LS = (LunSpec.iloc[:,ll]) # spectral data is a measurement which has been extrapolated to top of atmosphere. 
+                        # CHANGE TJS: Need to add in the Phase information here
+                        Lunar_refl_LS = (LunSpec.iloc[:,ll]) * Phase_lb # spectral data is a measurement which has been extrapolated to top of atmosphere. 
                         LAtmos = np.append(LAtmos, Lunar_refl_LS)                      
                         if alt_<0:
                             Iol_LS = 0
@@ -509,7 +535,7 @@ def main():
                     LunI_LS = LunI_LS.append(pd.Series(LSurface, index=LunI_LS.columns),ignore_index=True)
                     LunI_LS_atm = LunI_LS_atm.append(pd.Series(LAtmos, index=LunI_LS_atm.columns),ignore_index=True)
                     
-                    if Phase>=0.9:
+                    if Phase >=0.9:
                         fullmoon_mask.append(1)
                     else: 
                         fullmoon_mask.append(0)
