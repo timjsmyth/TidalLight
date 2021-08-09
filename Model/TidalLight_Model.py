@@ -134,8 +134,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2021-03-17"; print("Start date: ", start_date)
-        end_date = "2021-03-28"; print("End date: ", end_date)
+        start_date = "2021-06-17"; print("Start date: ", start_date)
+        end_date = "2021-06-28"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
