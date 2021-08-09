@@ -15,7 +15,7 @@ import pdb
 
 def sol_spectra(fname_Sol):
     df = pd.read_csv(fname_Sol, skiprows=1) # Read csv with filename specified in model script
-    PAR = np.array(np.arange(380, 750, 10)) # set array length and binwidth to every 10nm
+    PAR = np.array(np.arange(400, 700, 10)) # set array length and binwidth to every 10nm
     d = pd.DataFrame(columns=PAR) # create dataframe with columns of wavelength name
     PAR_int = np.array([])
     
@@ -44,7 +44,7 @@ def sol_spectra(fname_Sol):
 
 def lun_spectra(fname_Lun):
     df = pd.read_csv(fname_Lun) # Read csv with filename specified in model script
-    PAR = np.array(np.arange(380, 750, 10)) # set array length and binwidth to every 10nm
+    PAR = np.array(np.arange(400, 700, 10)) # set array length and binwidth to every 10nm
     e = pd.DataFrame(columns=PAR) # create dataframe with columns of wavelength name
     PAR_int = np.array([])
     
@@ -75,7 +75,7 @@ def lun_spectra(fname_Lun):
     
 def A_spectra(fname_ALAN):
     df = pd.read_csv(fname_ALAN, skiprows=1) # skiprows: insert number of rows before header row, headers row is skipped automatically
-    PAR = np.array(np.arange(380, 750, 10)) # set array length and binwidth to every 10nm
+    PAR = np.array(np.arange(400, 700, 10)) # set array length and binwidth to every 10nm
     f = pd.DataFrame(columns=PAR) # create dataframe with columns of wavelength name
     PAR_int = np.array([])
 
@@ -113,6 +113,7 @@ def spectra_run(fname_Sol, fname_Lun, fname_ALAN, input_flag):
     df = pd.read_csv(fname_Sol, skiprows=1)
     DF = pd.read_csv(fname_Lun)
     Df = pd.read_csv(fname_ALAN) # skiprows: insert number of rows before header row, headers row is skipped automatically
+
     print("Running Solar Spectra")
     Sol = spectral_split('Wvlgth nm', 'Etr W*m-2*nm-1', df)
     print("Running Lunar Spectra")
@@ -136,21 +137,164 @@ def spectra_run(fname_Sol, fname_Lun, fname_ALAN, input_flag):
     else:
         ALAN = spectral_split('Wavelength', 'LED(W/m-2)', Df)
         ALAN_TYPE = "LED"
+   
     return Sol, Lun, ALAN, ALAN_TYPE
     
 
-def spec_frame(R, G, B): 
-    columns = ['Red', 'Green', 'Blue']
-    data = {'Red': [R], 'Green': [G], 'Blue': [B]}
+def spec_frame(PAR, R, G, B): 
+    columns = ['PAR', 'Red', 'Green', 'Blue']
+    data = {'PAR': [PAR], 'Red': [R], 'Green': [G], 'Blue': [B]}
     df = pd.DataFrame(data, columns=columns)
     return df
 
+#   Model for atmospheric transmittance of solar irradiance through
+#   a maritime atmosphere.  Computes direct and diffuse separately.
+#   Includes water vapor and oxygen absorption.
+def dir_dif_irradiance(wavelength_col, F0_col, a_oz_col, a_ox_col, a_w_col, df, theta):
+
+#      subroutine atmodd(iblw,rad,lam,theta,oza,ag,aw,sco3,p,wv,
+#    * rh,am,wsm,ws,vis,Fo,Edir,Edif,Ed)
+#
+#      parameter(nlt=351)
+#      integer lam(nlt)
+#      real Fo(nlt),oza(nlt),ag(nlt),Edir(nlt),Edif(nlt),Ed(nlt)
+#      real aw(nlt)
+#      double precision rad
+
+    p0 = 1013.25 # standard pressure in mb
+    p = 1013.25  # assume standard pressure in mb
+
+#   Compute atmospheric path lengths (air mass); pressure-corrected
+    cosunz = np.cos(np.radians(theta))
+#   Kasten and Young 1989.
+    rex = -1.253
+    rtmp = (93.885-theta)**rex
+    rm = 1.0/(cosunz+0.15*rtmp)
+    rex = -1.6364
+    rtmp = (96.07995-theta)**rex
+    rm = 1.0/(cosunz+0.50572*rtmp)
+    rmp = p/p0*rm
+    otmp = (cosunz*cosunz+44.0/6370.0)**0.5
+    rmo = (1.0+22.0/6370.0)/otmp
+    
+#  Aerosol parameters; simplified Navy aerosol model
+#      call navaer(rh,am,wsm,ws,vis,beta,alpha,wa,asymp)
+    rlam = 0.55 # reference wavelength (in microns)
+    rh = 80.0 # Typical humidities
+    rnum = 2.0 - rh/100.0
+    rden = 6.0*(1.0-rh/100.0)
+    frh = (rnum/rden)**0.333
+     
+
+#      write(6,*)
+#      write(6,*)'   Aerosol parameters from the Navy aerosol model:'
+#      write(6,*)'     alpha                    = ',alpha
+#      write(6,*)'     beta                     = ',beta
+#      write(6,*)'     asymmetry parameter      = ',asymp
+#      write(6,*)'     single scattering albedo = ',wa
+#      eta = -alpha
+#   Forward scattering probability
+#      alg = alog(1.0-asymp)
+#      afs = alg*(1.459+alg*(.1595+alg*.4129))
+#      bfs = alg*(.0783+alg*(-.3824-alg*.5874))
+#      Fa = 1.0 - 0.5*exp((afs+bfs*cosunz)*cosunz)
+
+    pdb.set_trace()
+
+#  Surface reflectance (assume dark surface)
+    rod = 0.0
+    ros = 0.0
+
+#  Compute spectral irradiance
+#      do nl = 1,nlt
+#    Rayleigh, by Bird's method
+#       rlam = lam(nl)*1.0E-3
+#       tr = 1.0/(115.6406*rlam**4 - 1.335*rlam**2)
+#       rtra = exp(-tr*rmp)   !transmittance
+#    Ozone
+#       to = oza(nl)*sco3   !optical thickness
+#       otra = exp(-to*rmo)   !transmittance
+#   Aerosols
+#       ta = beta*rlam**eta
+#       if (lam(nl) .eq. 550)then
+#	write(6,*)'   Aerosol optical thickness at 550 nm = ',ta
+#       endif
+#       atra = exp(-ta*rm)
+#       taa = exp(-(1.0-wa)*ta*rm)
+#       tas = exp(-wa*ta*rm)
+#   Oxygen/gases
+#       gtmp = (1.0 + 118.3*ag(nl)*rmp)**0.45
+#       gtmp2 = -1.41*ag(nl)*rmp
+#       gtra = exp(gtmp2/gtmp)
+#   Water Vapor
+#       wtmp = (1.0+20.07*aw(nl)*wv*rm)**0.45
+#       wtmp2 = -0.2385*aw(nl)*wv*rm
+#       wtra = exp(wtmp2/wtmp)
+#
+#  Direct irradiance
+#       Edir(nl) = Fo(nl)*cosunz*rtra*otra*atra*gtra*wtra*(1.0-rod)
+#
+#   Diffuse irradiance
+#       dray = Fo(nl)*cosunz*gtra*wtra*otra*taa*0.5*
+#     *      (1.0-rtra**.95)
+#       daer = Fo(nl)*cosunz*gtra*wtra*otra*rtra**1.5*taa*Fa*
+#     *      (1.0-tas)
+#
+#  Total diffuse
+#       Edif(nl) = (dray + daer)*(1.0-ros)
+
+#       Ed(nl) = Edir(nl) + Edif(nl)
+
+
+    return df
+
+
+# Determine the atmospheric diffuse attenuation coefficient
+def k_spectral_split(wavelength_col, trans_col, df):
+    # Thresholds used in the Davies et al, 2020 paper " Biologically active ALAN at seafloor"
+    bbin1 = df[df[wavelength_col]==400].index[0] # Broadband lower limit index
+    bbin2 = df[df[wavelength_col]==700].index[0] # Broadband upper limit index
+    
+    bin1 = df[df[wavelength_col]==400].index[0] # Blue lower limit index
+    bin2 = df[df[wavelength_col]==500].index[0] # Blue upper limit index
+
+    gin1 = df[df[wavelength_col]==495].index[0] # Green lower limit index
+    gin2 = df[df[wavelength_col]==560].index[0] # Green upper limit index
+
+    rin1 = df[df[wavelength_col]==620].index[0] # Red lower limit index
+    rin2 = df[df[wavelength_col]==740].index[0] # Red upper limit index 
+
+    t = df[trans_col].to_numpy()
+    x = df[wavelength_col].to_numpy()
+    
+    BBt = t[bbin1:bbin2]
+    BBx = x[bbin1:bbin2]
+    Bt = t[bin1:bin2]
+    Bx = x[bin1:bin2]
+    Gt = t[gin1:gin2]
+    Gx = x[gin1:gin2]
+    Rt = t[rin1:rin2]
+    Rx = x[rin1:rin2]
+    
+    k_atmos_bb = -np.log10(np.mean(BBt))
+    k_atmos_b = -np.log10(np.mean(Bt))
+    k_atmos_g = -np.log10(np.mean(Gt))
+    k_atmos_r = -np.log10(np.mean(Rt))
+
+    columns = ['Broadband', 'Red', 'Green', 'Blue']
+    data = {'Broadband': [k_atmos_bb], 'Red': [k_atmos_r], 'Green': [k_atmos_g], 'Blue': [k_atmos_b]}
+    dataframe = pd.DataFrame(data, columns=columns)
+
+    return dataframe
+
 def spectral_split(wavelength_col, intensity_col, df):
     
-    # ALAN dataset records -ve values of intensity when wavelnegth < 400nm
+    # ALAN dataset records -ve values of intensity when wavelength < 400nm
     ## SOLAR Spectra
 
     # Thresholds used in the Davies et al, 2020 paper " Biologically active ALAN at seafloor"
+    bbin1 = df[df[wavelength_col]==400].index[0] # Broadband lower limit index
+    bbin2 = df[df[wavelength_col]==700].index[0] # Broadband upper limit index
 
     bin1 = df[df[wavelength_col]==400].index[0] # Blue lower limit index
     bin2 = df[df[wavelength_col]==500].index[0] # Blue upper limit index
@@ -163,6 +307,9 @@ def spectral_split(wavelength_col, intensity_col, df):
 
     i = df[intensity_col].to_numpy()
     x = df[wavelength_col].to_numpy()
+    
+    BBi = i[bbin1:bbin2]
+    BBx = x[bbin1:bbin2]
     Bi = i[bin1:bin2]
     Bx = x[bin1:bin2]
     Gi = i[gin1:gin2]
@@ -170,15 +317,17 @@ def spectral_split(wavelength_col, intensity_col, df):
     Ri = i[rin1:rin2]
     Rx = x[rin1:rin2]
 
+    PARLight = (scipy.integrate.simps(BBi,BBx, dx=0.5))
     BlueLight = (scipy.integrate.simps(Bi,Bx, dx=0.5))
     GreenLight = (scipy.integrate.simps(Gi,Gx, dx=0.5))
     RedLight = (scipy.integrate.simps(Ri,Rx, dx=0.5))
-    dataframe = spec_frame(RedLight, GreenLight, BlueLight)
+    dataframe = spec_frame(PARLight, RedLight, GreenLight, BlueLight)
     # pdb.set_trace()
     print('Irr. (W/m^2), '
           'Blue:', BlueLight,
           'Green:', GreenLight,
-          'Red: ', RedLight)
+          'Red: ', RedLight,
+          'PAR(400 - 700nm): ', PARLight)
     return dataframe
 
 ##########################################################################################

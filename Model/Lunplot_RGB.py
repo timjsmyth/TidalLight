@@ -131,6 +131,10 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
     bb = -300*AA
     foundmaxLS = []
 
+    # LUNAR BROADBAND SEALEVEL
+    ax[0].plot(dec_day, I, color='black')
+    #ax0 = ax[0].twinx()
+
     for i in range(len(LunSpec.columns)):
         if i==0:
             colour = 'firebrick'
@@ -162,12 +166,15 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
     ax0.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
     ax0.axes.get_yaxis().set_visible(False)
     ax[0].set_ylim([-(max(foundmaxLS)/10), (max(foundmaxLS)+(max(foundmaxLS)/10))]) 
+    ax[0].set_ylim([(-max(I)/10), (max(I)+max(I)/10)])
 
     # LUNAR INT SEABED 
     foundmaxLSb = []
     ax1 = ax[1].twinx()
     ax1.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
     ax1.axes.get_yaxis().set_visible(False)
+    
+    ax[1].plot(dec_day, lIBT, color='black')
     for i in range(len(LunSpec.columns)):
         if i==0:
             colour = 'firebrick'
@@ -195,7 +202,8 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
     # ax[1].set_yscale('symlog')
     ax[1].yaxis.set_major_formatter(ScalarFormatter())
     # ax[1].set_xlim([182.1, 182.3])
-    ax[1].set_ylim([-(max(foundmaxLSb)/10), (max(foundmaxLSb)+(max(foundmaxLSb)/10))])   
+    #ax[1].set_ylim([-(max(foundmaxLSb)/10), (max(foundmaxLSb)+(max(foundmaxLSb)/10))])   
+    ax[1].set_ylim([(-max(I)/10), (max(I)+max(I)/10)])
 
     # TIDAL MODEL WITH REFERENCE DATUM AND WATERCOLUMN HEIGHT
     #########################

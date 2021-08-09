@@ -21,6 +21,7 @@ import Lunplot_RGB
 import Aplot_RGB
 import Falchi_Kd_Position
 import twilight_spitschan
+import gcirrad
 
 
 import numpy as np
@@ -96,7 +97,7 @@ def main():
 
     # LIGHT SOURCES
     aparser.add_argument("-s", "--solar", action="store_true", help="Solar Irradiance at surface and seabed")
-    aparser.add_argument("-A", "--ALAN", action="store", type=float, help="0 = clear condition (2.88 PFFD), 1 = cloudy condition (6.24 PFFD), Irradiance at surface and seabed")
+    aparser.add_argument("-A", "--ALAN", action="store", type=float, help="2 = clear condition (2.88 PFFD), 1 = cloudy condition (6.24 PFFD), Irradiance at surface and seabed")
     aparser.add_argument("-l", "--lunar", action="store_true", help="Lunar Irradiance at surface and seabed, Alt, Az, distance") 
     # MODEL PARAMETERS
     aparser.add_argument("-T", "--time", action="store", type=float, help="Time increment in decimal hours i.e. 0.25 = 15 minutes")
@@ -133,8 +134,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2020-01-01"; print("Start date: ", start_date)
-        end_date = "2020-12-31"; print("End date: ", end_date)
+        start_date = "2021-03-17"; print("Start date: ", start_date)
+        end_date = "2021-03-28"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -175,6 +176,7 @@ def main():
     fname_Sol = path_name + 'Solarspectra.csv'
     fname_Lun = path_name + 'Moon_spectra.csv'
     fname_ALAN = path_name + 'Lightspectra.csv'
+    fname_gcirrad = path_name + 'gcirrad.dat'
     # enablePrint()
     
 
@@ -191,13 +193,22 @@ def main():
         input_flag = 0
     # blockPrint()
     SolSpec, LunSpec, ASpec, ALAN_TYPE = SpectralSplit.spectra_run(fname_Sol, fname_Lun, fname_ALAN, input_flag)
+    SolBB = SolSpec['PAR'].to_numpy()[0]
+    LunBB = LunSpec['PAR'].to_numpy()[0]
+    SolSpec = SolSpec[['Red','Green','Blue']]
+    LunSpec = LunSpec[['Red','Green','Blue']]
     enablePrint()
 
-
 ##  Define constants, components and arrays    
-    Isc = 1366 #(W/m^2) #, 2400 PPFD umol/m^2/s PAR = 400:700nm range Intensity provided in W/m^2 for spectra
-    #k_atmos = 0.01 # FIXED - CONSIDER CHANGING FOR SPECTRAL DATA, HOWEVER SUNRISE AND SET ARE DIFFICULT TO MODEL
-    k_atmos = 0.21 # Update from Jeff Conrad 
+    # Isc = 521.74 # (W/m^2) A solar constant of 1373 W/m^2 (total solar irradiance) is assumed, 
+    # of which approximately 38% (521.74 W/m^2) is PAR (Kirk 1994) (from Roberts paper)
+    Isc = SolBB # Replaced above approximation with the integration from Solarspectra.csv 
+    # k_atmos = 0.01 # Value from the Roberts paper
+    # k_atmos = 0.21 # Value from Jeff Conrad 
+    df_trans_atmos = pd.read_csv(fname_gcirrad, delim_whitespace=True)
+    df_k_atmos = SpectralSplit.k_spectral_split('Wavelength','Trans',df_trans_atmos)
+    k_atmos_bb = df_k_atmos['Broadband'].to_numpy()[0]
+    df_k_atmos_spec = df_k_atmos[['Red','Green','Blue']]
     
     ###################################### Select location ####################################################
     geo_location = str(args.location)
@@ -217,7 +228,6 @@ def main():
         geo_location = ''
     if args.longitude:
         longitude_deg = args.longitude
-    
     
     if args.station:
         locations = pd.read_csv("../TamirLocDoc.csv")
@@ -286,7 +296,7 @@ def main():
     # Spectral Intensity Dataframes
     SolI_SSb = pd.DataFrame(columns=col_names_SS); LunI_LSb = pd.DataFrame(columns=col_names_SS); AI_ASb = pd.DataFrame(columns=col_names_SS)
     SolI_SS = pd.DataFrame(columns=col_names_SS); LunI_LS = pd.DataFrame(columns=col_names_SS); AI_AS = pd.DataFrame(columns=col_names_SS)
-    SolI_SS_atm = pd.DataFrame(columns=col_names_SS); LunI_LS_atm = pd.DataFrame(columns=col_names_SS)
+    SolI_SS_TOA = pd.DataFrame(columns=col_names_SS); LunI_LS_atm = pd.DataFrame(columns=col_names_SS)
     SolI_SSRes = pd.DataFrame(columns=col_names_SS); LunI_LSRes = pd.DataFrame(columns=col_names_SS); AI_ASRes = pd.DataFrame(columns=col_names_SS)
     crit_depth = np.arange(0, 200, 0.25).tolist()
 
@@ -389,7 +399,11 @@ def main():
             monthly_Kd_idx = Kd_Falchi_Output[Kd_Falchi_Output['Month'] == month].index[0] # Match the month of the loop to the correct Kd 
             kd_red = Kd_R[monthly_Kd_idx]; kd_green = Kd_G[monthly_Kd_idx]; kd_blue = Kd_B[monthly_Kd_idx] # Assign monthly Kd to variable
             KD = [kd_red, kd_green, kd_blue] # create a Kd array
-            KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
+            #KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
+            KD_Bb = np.mean(KD) # Calculate Broadband Kd
+            #enablePrint()
+            #pdb.set_trace()
+            #blockPrint()
 
         enablePrint()
         print(model_date)
@@ -407,25 +421,36 @@ def main():
                 date_record.append(date)
                 jday = date.timetuple().tm_yday # Retrieve date as a tuple
                 dday = int(jday)+H # Combine times as a decimal day
+                Ecc = (1.0+1.67E-2*np.cos(2.0*np.pi*float(dday-3)/365.0))**2 # correction for eccentricity of Earth's orbit
                 dec_day.append(dday) 
                 altitude_deg = get_altitude(latitude_deg, longitude_deg, date) # Retrieve altitude of the sun
+
                 # Print Sunset/Sunrise times to terminal
                 # if 0.1>altitude_deg>-0.1:
                 #     if hour<12: 
                 #         print("Sunrise: ", hour,":",minute,"\nSolar Alt. (degrees)", altitude_deg) # disable blockPrint for output
                 #     elif hour>12:
                 #         print("Sunset: ", hour,":",minute,"\nSolar Alt. (degrees)", altitude_deg)
+                #
+                # In the United Kingdom, there is a legally enforced lighting-up time, 
+                # defined as from half an hour after sunset to half an hour before sunrise
+                # https://en.wikipedia.org/wiki/Lighting-up_time
+                # Civil twilight when the Sun's centre is 6 degrees below the horizon, 
+                # is roughly equivalent to Lighting-up Time.
+                # https://www.rmg.co.uk/stories/topics/dawn-dusk-twilight
 
                 # Playing Night time.. Day time: https://www.youtube.com/watch?v=Ln2Xq8fCNI8
                 #enablePrint()
                 if -18<=altitude_deg<=0:
                     twilight_df = twilight_spitschan.main(altitude_deg, "rural", "skye")
-                    solar_day=float(0.5)
+                    if -6<=altitude_deg<=0:
+                       solar_day = float(0.75)
+                    else:
+                       solar_day = float(0.5)
                 elif altitude_deg < -18:
                     solar_day = float(0)
                     Night = 2700
                     night.append(Night) # Night values are assigned arbitrarily for plotting effect
-
                 else:
                     solar_day = float(1)
                     Night = -600
@@ -436,36 +461,63 @@ def main():
 ######################################################## 
                 # IRRADIANCE CALCULATIONS
 ########################################################
+                df_TOA = gcirrad.TOA_irradiance(df_trans_atmos, Ecc)
+                # Top of Atmosphere values of the SolSpec
+                SolSpecTOA = SpectralSplit.spectral_split('Wavelength','Fo',df_TOA)
+                PARTOA = SolSpecTOA[['PAR']].to_numpy()[0]
+                SolSpecTOA = SolSpecTOA[['Red','Green','Blue']]
+
                 # SOLAR CALCULATION 
                 if (args.solar):
-##                      Calculate variable using Pysolar
+##                   Calculate variable using Pysolar
                     #airmass = get_air_mass_ratio(altitude_deg)  ###### NOTE ####### diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
-                    airmass = get_air_mass_kasten_young(altitude_deg)
-##                      Calculate Intensity
-                    Iatmos = Isc*(1+0.0344*np.cos(np.deg2rad(360.*float(dday)/365)))
-##                      Calculate Iatmos for each wavelength
+                    if (altitude_deg > 0.):
+                       LUNFACTOR = 1.0 # This is a scaling factor if the moon is being calculated.  Default is 1.0 (i.e. the solar component)
+                       airmass = get_air_mass_kasten_young(altitude_deg)
+                       # Run a more sophisticated atmospheric model
+                       df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, altitude_deg, Ecc, LUNFACTOR)
+                       # Surface values of the SolSpec
+                       SolSpecSurface = SpectralSplit.spectral_split('Wavelength','Ed',df_dir_dif)
+                       PARSurface = SolSpecSurface[['PAR']].to_numpy()[0]
+                       SolSpecSurface = SolSpecSurface[['Red','Green','Blue']]
+#                    else:
+#                       airmass = 30.0
+##                  Calculate Intensity based on the Earth's orbital eccentricity
+                    #Iatmos = Isc*Ecc
+##                  Calculate Iatmos for each wavelength
                     SSurface = np.array([])
-                    SAtmos = np.array([])
-                    for ss in range(len(SolSpec.columns)):
-                        Iatmos_SS = SolSpec.iloc[:,ss]*(1+0.0344*np.cos(np.deg2rad(360.*float(dday)/365))) # Irradiance at atmosphere (Masters, 2004): Renewable and Efficient Power Systems Ch7
-                        SAtmos = np.append(SAtmos, Iatmos_SS)
+                    #SAtmos = np.array([])
+                    STOA = np.array([])
+                    
+                    for ss in range(len(SolSpecTOA.columns)):
+                        #Iatmos_SS = SolSpec.iloc[:,ss]*Ecc # Irradiance at atmosphere (Masters, 2004): Renewable and Efficient Power Systems Ch7
+                        
+                        ITOA_SS = SolSpecTOA.iloc[:,ss]
+                        STOA = np.append(STOA, ITOA_SS)
+                        #k_atmos_spec = df_k_atmos_spec.iloc[:,ss].to_numpy()[0]
                         if solar_day==0:
                             IO_SS = float(0)
-                        elif solar_day == 0.5:
+                        elif (solar_day >= 0.5 and solar_day < 1.0):
                             IO_SS = np.exp(twilight_df["Twilight_broadband(log(W/m2))"][ss]) #Twilight component
                             if IO_SS > 15:
-                                IO_SS=0
-                            
+                               IO_SS=0
                         else:
-                            IO_SS = Iatmos_SS*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos) # Irradiance at surface
+                            IO_SS = SolSpecSurface.iloc[:,ss]
+                            #IO_SS = Iatmos_SS*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos_spec) # Irradiance at surface
                         SSurface = np.append(SSurface, IO_SS)
-                    SolI_SS_atm = SolI_SS_atm.append(pd.Series(SAtmos, index=SolI_SS_atm.columns),ignore_index=True)
+
+                    SolI_SS_TOA = SolI_SS_TOA.append(pd.Series(STOA, index=SolI_SS_TOA.columns),ignore_index=True)
                     SolI_SS = SolI_SS.append(pd.Series(SSurface, index=SolI_SS.columns),ignore_index=True)  
                     
-                    if solar_day<1:
+                    if solar_day==0:
                         IO = float(0)
+                    elif (solar_day >= 0.5 and solar_day < 1.0):
+                        IO = np.exp(twilight_df["Twilight_PAR(log(W/m2))"][0])
+                        if IO > 15:
+                           IO = float(0)
                     else:
-                        IO = Iatmos*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos) # Broadband
+                        IO = PARSurface # Broadband
+                        #IO = Iatmos*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos_bb) # Broadband
                     Io.append(IO)
                 
 ######################################################## 
@@ -475,14 +527,18 @@ def main():
                 ASurface = np.array([])
                 if args.ALAN:
                     for aa in range(len(ASpec.columns)):
-                        if solar_day==1:
+                        #if solar_day==1:
+                        # Only "switch on" ALAN after "Lighting up time" - which is end of Civic Twilight
+                        if solar_day>=0.75:
                             Aint = 0
                         else:
                             Aint = ASpec.iloc[:,aa]
                         ASurface = np.append(ASurface, Aint)
                     
                     AI_AS = AI_AS.append(pd.Series(ASurface, index=AI_AS.columns),ignore_index=True)  
-                    if solar_day==1:
+                    #if solar_day==1:
+                    # Only "switch on" ALAN after "Lighting up time" - which is end of Civic Twilight
+                    if solar_day>=0.75:
                         Aint = 0
                     else:
                         Aint = ALAN_total
@@ -506,7 +562,11 @@ def main():
                     #albedo_phased = Lunar_albedo*Phase 
                     albedo_phased = Lunar_albedo*Phase_lb 
                     # LUNAR REFLECTION CALC. 
-                    Lunar_refl = (Isc/np.pi)*albedo_phased*0.000064692 # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
+                    lun_sva = 0.000064692/np.pi # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
+                    LUNFACTOR = lun_sva*albedo_phased
+                    # Iatmos in place of Isc - to correct for eccentricity of Earth (moon) orbit 
+                    #Lunar_refl = Iatmos*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
+                    Lunar_refl = PARTOA*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
                     #airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
                     airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:
@@ -514,8 +574,12 @@ def main():
                     elif altitude_deg>0:
                         Iol = 0
                     else:
-                        Iol = (Lunar_refl*np.sin(np.deg2rad(alt_))*np.exp(-1.*airmass*k_atmos)) # Lunar Irr at surface
-                        Iol = Iol*1000000 # convert from W/m^2 to uW/m^2 
+                        df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, alt_, Ecc, LUNFACTOR)
+                        LunSpecSurface = SpectralSplit.spectral_split('Wavelength','Ed',df_dir_dif)
+                        LunPARSurface = LunSpecSurface[['PAR']].to_numpy()[0]
+                        LunSpecSurface = LunSpecSurface[['Red','Green','Blue']]
+                        Iol = LunPARSurface*1000000. # convert from W/m^2 to uW/m^2
+                        #Iol = (Lunar_refl*np.sin(np.deg2rad(alt_))*np.exp(-1.*airmass*k_atmos_bb)) # Lunar Irr at surface
                     alt.append(alt_)
                     phase.append(Phase)
                     az.append(az_)
@@ -524,22 +588,35 @@ def main():
 
                     LSurface = np.array([])
                     LAtmos = np.array([])
-                    for ll in range(len(LunSpec.columns)):
+                    #for ll in range(len(LunSpec.columns)):
+                    for ll in range(len(SolSpec.columns)):
+                    #for ll in range(len(LunSpecSurface.columns)):
                         #Lunar_refl_LS = (LunSpec.iloc[:,ll]) # spectral data is a measurement which has been extrapolated to top of atmosphere. 
                         # CHANGE TJS: Need to add in the Phase information here
-                        Lunar_refl_LS = (LunSpec.iloc[:,ll]) * Phase_lb # spectral data is a measurement which has been extrapolated to top of atmosphere. 
-                        LAtmos = np.append(LAtmos, Lunar_refl_LS)                      
+                        #Lunar_refl_LS = (LunSpec.iloc[:,ll]) * Phase_lb # spectral data is a measurement which has been extrapolated to top of atmosphere. 
+                        #Lunar_refl_LS = SolSpecTOA.iloc[:,ll]*Ecc*lun_sva*albedo_phased # spectral data is a measurement which has been extrapolated to top of atmosphere. 
+                        Lunar_refl_LS = SolSpecTOA.iloc[:,ll]*lun_sva*albedo_phased # spectral data is a measurement which has been extrapolated to top of atmosphere. 
+                        Lunar_refl_LS = Lunar_refl_LS*1000000 # convert from W/m^2 to uW/m^2
+                        LAtmos = np.append(LAtmos, Lunar_refl_LS)
+                        #k_atmos_spec = df_k_atmos_spec.iloc[:,ss].to_numpy()[0]                      
                         if alt_<0:
                             Iol_LS = 0
+                        # Lunar irradiance only meaningful after sunset
                         elif altitude_deg>0:
                             Iol_LS = 0
                         else:
-                            Iol_LS = (Lunar_refl_LS*np.sin(np.deg2rad(alt_))*np.exp(-1.*airmass*k_atmos))
-                            Iol_LS = Iol_LS*1000000 # convert from W/m^2 to uW/m^2 
+                            Iol_LS = LunSpecSurface.iloc[:,ll]*1000000. # convert from W/m^2 to uW/m^2
+                            #Iol_LS = (Lunar_refl_LS*np.sin(np.deg2rad(alt_))*np.exp(-1.*airmass*k_atmos_spec))
+                            #Iol_LS = Iol_LS*1000000 # convert from W/m^2 to uW/m^2 
                         LSurface = np.append(LSurface, Iol_LS)
                     
                     LunI_LS = LunI_LS.append(pd.Series(LSurface, index=LunI_LS.columns),ignore_index=True)
                     LunI_LS_atm = LunI_LS_atm.append(pd.Series(LAtmos, index=LunI_LS_atm.columns),ignore_index=True)
+                    
+                    #if (alt_ > 5.0 and altitude_deg < 0):
+                    #   enablePrint()
+                    #   pdb.set_trace()
+                    #   blockPrint()
                     
                     if Phase >=0.9:
                         fullmoon_mask.append(1)
@@ -739,18 +816,23 @@ def main():
         Tot_atm = np.array([])
         for ii in range(len(SolSpec.columns)):
             MAX = max(SolI_SS.iloc[:,ii]) # At the surface
-            MAX_atm = max(SolI_SS_atm.iloc[:,ii])
+            MAX_atm = max(SolI_SS_TOA.iloc[:,ii])
             Tot = np.append(Tot, MAX)
             Tot_atm = np.append(Tot_atm, MAX_atm)
         Total_ss = np.sum(Tot)
         Total_ss_atm = np.sum(Tot_atm)
         
-        print("SOLAR:\n     Total Broadband signature at surface =", Total_Bb)
-        print("     Total Spectral signature (summed) at surface =", Total_ss)
-        print("     Total Spectral signature (summed) atmosphere =", Total_ss_atm)
+        print("SOLAR:\n     Max PAR[W/m2] at surface =", Total_Bb)
+        print("     Max PAR[W/m2] at TOA =", Isc)
+        print("     Max summed RGB[W/m2] at surface =", Total_ss)
+        print("     Max summed RGB[W/m2] at TOA =", Total_ss_atm)
         
-    # Lunar Total: Spectral check 
+        #enablePrint()
+        #pdb.set_trace()
+        #blockPrint()
+        
     if args.lunar:
+        # Lunar Total: Spectral check 
         Total_Bb = max(I)
         Total_Bb_atm = max(I_atmos)
         Tot = np.array([])
@@ -762,13 +844,14 @@ def main():
             Tot_atm = np.append(Tot_atm, MAX_atm)
         Total_ls = np.sum(Tot)
         Total_ls_atm = np.sum(Tot_atm)
-        print("LUNAR: \n     Total Broadband signature at surface =", Total_Bb)
-        print('     Total Broadband signature atmosphere =', Total_Bb_atm)
-        print("     Total Spectral signature (summed) at surface =", Total_ls)
-        print("     Total Spectral signature (summed) atmosphere =", Total_ls_atm)
 
-    # ALAN Total: Spectral check
+        print("LUNAR: \n     Max PAR[uW/m2] at surface =", Total_Bb)
+        print('     Max PAR[uW/m2] at TOA =', Total_Bb_atm)
+        print("     Max summed RGB[uW/m2] at surface =", Total_ls)
+        print("     Max summed RGB[uW/m2] at TOA =", Total_ls_atm)
+
     if args.ALAN:
+        # ALAN Total: Spectral check
         Total_Bb = max(A)
         Tot = np.array([])
         for ii in range(len(ASpec.columns)):
@@ -795,6 +878,9 @@ def main():
             
 
         if args.lunar:
+            #enablePrint()
+            #pdb.set_trace()
+            #blockPrint()
             Lunplot_RGB.LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT, datum,datum_percentage, phase, location, figurepath)
             # Lunplot_RGB.Lun3d(dec_day, LunSpec, LunI_LSb, LunI_LSRes, LunI_LS, datum)
             # Lunplot_RGB.LunRes(dec_day, LunSpec, LunI_LS, LunI_LSb, LunI_LSRes, tide_h, waterdepth, sol, datum)

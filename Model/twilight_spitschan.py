@@ -115,10 +115,17 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          r_wavelength = wavelength[r_wavelength_range[0]]
          r_actual_spectrum = actual_spectrum[r_wavelength_range[0]]
          r_integral = np.log10(np.sum(10**(r_actual_spectrum)))
+
+         # Addition of the PAR wavelength bands, so only one call to twilight function required
+         wavelength_range = np.where((df['Wavelength(nm)'] >= 400) & (df['Wavelength(nm)'] <= 700))
+         wavelength = wavelength[wavelength_range[0]]
+         actual_spectrum = actual_spectrum[wavelength_range[0]]
+         broadband_integral = np.log10(np.sum(10**(actual_spectrum)))
          
          out_df['Start_Wavelength(nm)'] = [np.min(r_wavelength),np.min(g_wavelength),np.min(b_wavelength)]
          out_df['End_Wavelength(nm)'] = [np.max(r_wavelength),np.max(g_wavelength),np.max(b_wavelength),]
          out_df['Twilight_broadband(log(W/m2))'] = [r_integral,b_integral,g_integral]
+         out_df['Twilight_PAR(log(W/m2))'] = broadband_integral
          out_df['Elevation(degrees)'] = solar_elevation
          print(out_df) 
    return out_df
