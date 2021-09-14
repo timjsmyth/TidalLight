@@ -3,7 +3,7 @@
 # script to reduce all tidal data files to 'datetime, tide (m)' format. 
 # Adam Wright 16/09/2020
 # Tim Smyth 13/09/2021
-readfile=TideRead_LOCATION
+readfile=TideReadLosAngeles
 filepath=$(nawk '/</ {} NR==4' $readfile) # retrieve variable from row 4 of the text file 
 filepath=${filepath#?} # remove "<" marker
 echo 	"FILEPATH:"	$filepath # print variable
@@ -28,7 +28,6 @@ head -5 $filename
 sed -e 1,${start_row}d $filename > new-file # remove all lines prior to data and save to a tmp file (new-file)
 sed '/-32767/d' new-file > tmp.txt
 mv tmp.txt new-file
-
 cat new-file | awk 'BEGIN {FS=","};{printf("%04d/%02d/%02d %02d:00:00, %5.3f\n", $1,$2,$3,$4,$5/1000.)}' > $fname_new
 rm new-file
 

@@ -8,6 +8,8 @@ from matplotlib.ticker import ScalarFormatter
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import pandas 
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 def do_clipping(patches, special_y, keep_below=True, ax=None):
     ax = ax or plt.gca()

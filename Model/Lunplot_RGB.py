@@ -7,6 +7,8 @@ from matplotlib import rc
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.pyplot as plt
 import pandas as pd
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 ################# Residuals #################
 def LunRes(dec_day, LunSpec, LunI_LS, LunI_LSb, LunI_LSRes, tide_h, waterdepth, sol, datum):

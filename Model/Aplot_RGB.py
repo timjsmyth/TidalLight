@@ -7,6 +7,8 @@ from matplotlib import rc
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.pyplot as plt
 import pandas 
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 ######################### Residuals #######################
 def ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, col_names_SS, night, sol, datum):

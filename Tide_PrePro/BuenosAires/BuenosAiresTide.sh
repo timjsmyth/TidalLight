@@ -3,7 +3,7 @@
 # script to reduce all tidal data files to 'datetime, tide (m)' format. 
 # Adam Wright 16/09/2020
 # Tim Smyth 13/09/2021
-readfile=TideRead_LOCATION
+readfile=TideReadBuenosAires
 filepath=$(nawk '/</ {} NR==4' $readfile) # retrieve variable from row 4 of the text file 
 filepath=${filepath#?} # remove "<" marker
 echo 	"FILEPATH:"	$filepath # print variable

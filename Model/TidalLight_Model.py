@@ -114,6 +114,10 @@ def main():
     aparser.add_argument("-loc", "--location", action="store", type=str, help="geographical location")
     aparser.add_argument("-thr", "--threshold", action="store", type=float, help="Threshold Intensity")
     aparser.add_argument("-stn", "--station", action="store", type=int, help="Station number - i#")
+
+    aparser.add_argument("-start", "--start", action="store", type=str, help="Start Date (yyyy-mm-dd)")
+    aparser.add_argument("-end", "--end", action="store", type=str, help="End Date (yyyy-mm-dd)")
+
     args = aparser.parse_args()
     sta = timeit.default_timer()  
     # if args.chlorophyll == None:
@@ -134,8 +138,15 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2021-07-01"; print("Start date: ", start_date)
-        end_date = "2021-07-31"; print("End date: ", end_date)
+        if args.start:
+           start_date = args.start; print("Start date: ", start_date)
+        else:
+           start_date = "2001-01-01"; print("Start date: ", start_date)
+        if args.end:
+           end_date = args.end; print("End date: ", end_date)
+        else:  
+           end_date = "2001-01-14"; print("End date: ", end_date)
+           
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -240,6 +251,15 @@ def main():
     elif geo_location == 'NewYork':
         latitude_deg = 40.7128; longitude_deg = -74.0060
         Tide_fname = "TideNewYork_L1.csv"
+    elif geo_location == 'LosAngeles':
+        latitude_deg = 34.0522; longitude_deg = -118.2437
+        Tide_fname = "TideLosAngeles_L1.csv"
+    elif geo_location == 'BuenosAires':
+        latitude_deg = -34.6037; longitude_deg = -58.3816
+        Tide_fname = "TideBuenosAires_L1.csv"
+    #elif geo_location == 'GEOTAG':
+    #    latitude_deg = LATLATLAT; longitude_deg = LONLONLON
+    #    Tide_fname = "TideGEOTAG_L1.csv"
     
     if args.latitude:
         latitude_deg = args.latitude
@@ -889,14 +909,13 @@ def main():
         
         if args.solar:
             Solplot_RGB.SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum,datum_percentage, location, figurepath)
+            
             # Solplot_RGB.Sol3d(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, datum,datum_percentage)
             # Solplot_RGB.SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, sol, datum, datum_percentage)
             
         if args.lunar:
-            #enablePrint()
-            #pdb.set_trace()
-            #blockPrint()
             Lunplot_RGB.LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT, datum,datum_percentage, phase, location, figurepath)
+
             # Lunplot_RGB.Lun3d(dec_day, LunSpec, LunI_LSb, LunI_LSRes, LunI_LS, datum)
             # Lunplot_RGB.LunRes(dec_day, LunSpec, LunI_LS, LunI_LSb, LunI_LSRes, tide_h, waterdepth, sol, datum)
             
