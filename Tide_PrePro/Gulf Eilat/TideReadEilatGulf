@@ -3,7 +3,7 @@ Input filename of tidal data:
 Input filepath of tidal data:
 <~/OneDriveAW/Seabed_project-PML/Test
 Input year of tidal data: 
-</19
+<,2019
 Column # of Tidal data (where column 1 = 1)
 <2
 Column # of Date

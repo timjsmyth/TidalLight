@@ -134,8 +134,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2021-06-17"; print("Start date: ", start_date)
-        end_date = "2021-06-28"; print("End date: ", end_date)
+        start_date = "2021-07-01"; print("Start date: ", start_date)
+        end_date = "2021-07-31"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -211,17 +211,35 @@ def main():
     df_k_atmos_spec = df_k_atmos[['Red','Green','Blue']]
     
     ###################################### Select location ####################################################
+    # Locations
+    #Tokyo: 35.6762, 139.6503
+    #Mumbai: 19.0760, 72.8777
+    #New York: 40.7128, -74.0060
+    #Shanghai: 31.2304, 121.4737
+    #Lagos: 6.5244, 3.3792
+    #Los Angeles: 34.0522, -118.2437
+    #Calcutta: 22.5726, 88.3639
+    #Buenos Aires: -34.6037, -58.3816
+    
     geo_location = str(args.location)
     if geo_location == 'Eilat':
         latitude_deg =  29.526; longitude_deg = 34.968  # lat; lon # Eilat South Tide Gauge
-        Tide_fname = "TideEilatGulf_new.csv"
+        Tide_fname = "TideEilatGulf_L1.csv"
     elif geo_location =='Plymouth_L4':
         latitude_deg = 50.27; longitude_deg = -4.13
-        Tide_fname = "TidePlymouth_new.csv"
-
+        Tide_fname = "TidePlymouth_L1.csv"
     elif geo_location == 'Plymouth_Dockyard':
         latitude_deg = 50.3819; longitude_deg = -4.1927 #  lat; lon # Plymouth (L4)
-        Tide_fname = "TidePlymouth_new.csv"
+        Tide_fname = "TidePlymouth_L1.csv"
+    elif geo_location =='Tokyo':
+        latitude_deg = 35.575; longitude_deg = 139.908
+        Tide_fname = "TideTokyo_L1.csv"
+    elif geo_location == 'Lagos':
+        latitude_deg = 6.5244; longitude_deg = 3.3792
+        Tide_fname = "TideLagos_L1.csv"
+    elif geo_location == 'NewYork':
+        latitude_deg = 40.7128; longitude_deg = -74.0060
+        Tide_fname = "TideNewYork_L1.csv"
     
     if args.latitude:
         latitude_deg = args.latitude
@@ -310,7 +328,7 @@ def main():
 ##      Read in tidal data from BODC
         print('Running tidal model...')
         
-        tidepath = os.getcwd() + "/Required/" + Tide_fname # path of data file output
+        tidepath = os.getcwd() + "/Required/TideGauge/" + Tide_fname # path of data file output
         tides_ = pd.read_csv(tidepath, delimiter=',', engine='python') #usecols=np.arange(16,48), engine='python')
         df = pd.DataFrame(tides_)
         for i in range(len(tides_)):
@@ -321,11 +339,7 @@ def main():
             tide_level = float(tide_level)
 
 ##          Convert date to datetime format
-           
-            if geo_location == 'Eilat':
-                T = datetime.datetime.strptime(tide_date, '%d/%m/%Y %H:%M') # Eilat Gulf + Cape Ferguson
-            else: 
-                T = datetime.datetime.strptime(tide_date, '%Y/%m/%d %H:%M:%S') # Plymouth
+            T = datetime.datetime.strptime(tide_date, '%Y/%m/%d %H:%M:%S') # All stations to a standard timestamp
 ##          append variables to lists
             TL.append(tide_level)
             t.append(T)
@@ -336,7 +350,10 @@ def main():
         if args.datum:
             datum = args.datum
         else:
-            datum = round((max(TL)*datum_percentage),2) # Standard: use 10% of the max tide height       <-------------- Select datum %
+            #datum = round((max(TL)*datum_percentage),2) # Standard: use 10% of the max tide height       <-------------- Select datum %
+            datum = round((min(TL) + (max(TL) - min(TL))*datum_percentage),2)
+            #pdb.set_trace()
+            
 ##      Convert time back to DataFrame
         t_df = pd.to_datetime(t)
 ##      Convert time to format of UTide ##'date2num' function only seems to work with pandas DF ##
@@ -638,7 +655,6 @@ def main():
                     if reconst.h<=datum:     
                         depth_to_datum = float(0) 
                     waterdepth.append(depth_to_datum)
-                    print(depth_to_datum)
                     
                     kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
 
@@ -876,7 +892,6 @@ def main():
             # Solplot_RGB.Sol3d(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, datum,datum_percentage)
             # Solplot_RGB.SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, sol, datum, datum_percentage)
             
-
         if args.lunar:
             #enablePrint()
             #pdb.set_trace()
@@ -892,7 +907,7 @@ def main():
             # Aplot_RGB.ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, sol, datum)
         
         # plt.plot(dec_day, Zc)
-        plt.show()
+        #plt.show()
     ###############################################
     #                   Outputs 
     ###############################################
@@ -963,17 +978,17 @@ def main():
             Aresult.to_csv(f'Output/ALAN_' + Output_fname)
         sto = timeit.default_timer()
         print('Data output completed in', (sto-sta)/60, 'minutes')
-        plt.show()
+        #plt.show()
     
 ###############################################
 #      Thank you for using TidalLight
-#   Authours: Adam E Wright, Tim Smyth, ...
+#   Authors: Adam E Wright, Tim Smyth, ...
 ###############################################  
   
 # Run script if called from command line.   
 if __name__=='__main__':
     main()
-    plt.show()
+    #plt.show()
   
         
        

@@ -1,1 +1,6 @@
 Model/__pycache__/*
+Model/Output/*.csv
+Model/Output/*.png
+Model/Required/TideGauge/old/*.*
+Model/*.csv
+Notes/

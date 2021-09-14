@@ -1,7 +1,7 @@
 Input filename of tidal data:
-<TidePlymouth.txt
+<TideLOCATION.txt
 Input filepath of tidal data:
-<~/OneDriveAW/Seabed_project-PML/Test
+<~/ALAN/tidal/TidalLight/Tide_PrePro/LOCATION
 Input year of tidal data: 
 <     1) 
 Column # of Tidal data (where column 1 = 1)
