@@ -1,0 +1,11 @@
+Input filename of tidal data:
+<TideShanghai_L0.csv
+Input filepath of tidal data:
+<~/ALAN/tidal/TidalLight/Tide_PrePro/Shanghai
+Input year of tidal data: 
+<1975
+Column # of Tidal data (where column 1 = 1)
+<2
+Column # of Date
+<1
+

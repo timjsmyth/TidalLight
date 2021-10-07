@@ -78,11 +78,12 @@ def read_falchi(latitude, longitude, sky_condition, input_flag):
    thresh_irr_total_uW_m2 = 0.102 # in uW/m2 converted from uE/m2/s  
 
    # This needs changing depending on where the 12.8GB of HYDROLIGHT data files and Falchi Atlas are stored...
-   datadir = '../../ALAN_Map+Kd/' # Relative path to directory that contains Kd files 
+   #datadir = '../../ALAN_Map+Kd/' # Relative path to directory that contains Kd files 
+   datadir = '/home/scratch/data/workspace/ALAN/Kd' # Relative path to directory that contains Kd files 
 
    # FALCHI map runs between 85N -> 60S (145 degrees)
    Image.MAX_IMAGE_PIXELS = 751939200
-   im = gdal.Open(datadir + "/World_Atlas_2015.tif")
+   im = gdal.Open(datadir + "/../World_Atlas_2015.tif")
    falchi_map = im.ReadAsArray()
    width = im.RasterXSize
    height = im.RasterYSize

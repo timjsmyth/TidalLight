@@ -2,7 +2,7 @@ Make a copy of both "LOCATION_Tide.sh" and "TideRead_LOCATION"
 
 Replace _LOCATION with a relevant Geotag
 Create a new folder with the same name as the Geotag to place the amended copies into. 
-Place the data file of the Geoteg locations tide gauge intto the same folder. 
+Place the data file of the Geoteg locations tide gauge into the same folder. 
 
 open Linux terminal and edit TideRead<Geotag> with and editor of your choice.
 e.g. vim TideReadPlymouth

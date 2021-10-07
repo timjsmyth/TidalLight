@@ -7,6 +7,8 @@ from matplotlib import rc
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.pyplot as plt
 import pandas 
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 ######################### Residuals #######################
 def ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, col_names_SS, night, sol, datum):
@@ -195,9 +197,6 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
 ##            plt.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.4)
     fig.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.5)
     fig.savefig(figurepath +str('ALAN.png'))
-
-
-
 
 if __name__ == '__main__':
     print('This script should be run in conjunction with IntensityModel_Modules{variants}.py')

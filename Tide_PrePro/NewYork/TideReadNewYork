@@ -1,0 +1,11 @@
+Input filename of tidal data:
+<TideNewYork_L0.csv
+Input filepath of tidal data:
+<~/ALAN/tidal/TidalLight/Tide_PrePro/NewYork
+Input year of tidal data: 
+<2019,
+Column # of Tidal data (where column 1 = 1)
+<2
+Column # of Date
+<1
+

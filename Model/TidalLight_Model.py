@@ -15,7 +15,7 @@ import utide
 import matplotlib.dates as mdates
 from mpl_toolkits.mplot3d import Axes3D
 
-
+import get_TidalCoef
 import Solplot_RGB
 import Lunplot_RGB
 import Aplot_RGB
@@ -84,7 +84,34 @@ def lumme_bowell(phase_angle):
     phase_factor = (1.0 - Q) * Phi1 + Q * Phi_m
 
     return phase_factor   
-       
+
+def Spectral_Check(I, I_atm, Spec_Columns, Surf_irr, ATM_irr, Spec_type, Isc):
+        Total_Bb = max(I)
+        Total_Bb_atm = max(I_atm)
+        Tot = np.array([])
+        Tot_atm = np.array([])
+        for ii in range(len(Spec_Columns)):
+            MAX = max(Surf_irr.iloc[:,ii]) # At the surface
+            MAX_atm = max(ATM_irr.iloc[:,ii])
+            Tot = np.append(Tot, MAX)
+            Tot_atm = np.append(Tot_atm, MAX_atm)
+        Total_surface = np.sum(Tot)
+        Total_atm = np.sum(Tot_atm)
+        if Spec_type == "SOLAR":
+            print(f"{Spec_type}:\n     Max PAR[W/m2] at surface =", Total_Bb)
+            print("     Max PAR[W/m2] at TOA =", Isc)
+            print("     Max summed RGB[W/m2] at surface =", Total_surface)
+            print("     Max summed RGB[W/m2] at TOA =", Total_atm)
+        elif Spec_type == "LUNAR":
+            print(f"{Spec_type}: \n     Max PAR[\u03bcW/m2] at surface =", Total_Bb)
+            print('     Max PAR[uW/m2] at TOA =', Total_Bb_atm)
+            print("     Max summed RGB[\u03bcW/m2] at surface =", Total_surface)
+            print("     Max summed RGB[\u03bcW/m2] at TOA =", Total_atm)
+        else: 
+            print(f"{Spec_type}:\n     Total Broadband signature at surface =", Total_Bb)
+            print("     Total Spectral signature (summed) at surface =", Total_surface)
+        return
+
 def main():
 
     
@@ -114,6 +141,11 @@ def main():
     aparser.add_argument("-loc", "--location", action="store", type=str, help="geographical location")
     aparser.add_argument("-thr", "--threshold", action="store", type=float, help="Threshold Intensity")
     aparser.add_argument("-stn", "--station", action="store", type=int, help="Station number - i#")
+    aparser.add_argument("-TC","--TideCoef", action="store_true", help="Use TXPO tidal coefficients for location") 
+
+    aparser.add_argument("-start", "--start", action="store", type=str, help="Start Date (yyyy-mm-dd)")
+    aparser.add_argument("-end", "--end", action="store", type=str, help="End Date (yyyy-mm-dd)")
+
     args = aparser.parse_args()
     sta = timeit.default_timer()  
     # if args.chlorophyll == None:
@@ -134,8 +166,15 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2010-12-31"; print("Start date: ", start_date)
-        end_date = "2011-01-02"; print("End date: ", end_date)
+        if args.start:
+           start_date = args.start; print("Start date: ", start_date)
+        else:
+           start_date = "2001-01-01"; print("Start date: ", start_date)
+        if args.end:
+           end_date = args.end; print("End date: ", end_date)
+        else:  
+           end_date = "2001-01-14"; print("End date: ", end_date)
+           
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -211,17 +250,49 @@ def main():
     df_k_atmos_spec = df_k_atmos[['Red','Green','Blue']]
     
     ###################################### Select location ####################################################
+    # Locations
+    ##Tokyo: 35.6762, 139.6503
+    ##Mumbai: 19.0760, 72.8777
+    ##New York: 40.7128, -74.0060
+    ##Shanghai: 31.2304, 121.4737
+    ##Lagos: 6.5244, 3.3792
+    ##Los Angeles: 34.0522, -118.2437
+    ##Buenos Aires: -34.6037, -58.3816
+    
     geo_location = str(args.location)
     if geo_location == 'Eilat':
         latitude_deg =  29.526; longitude_deg = 34.968  # lat; lon # Eilat South Tide Gauge
-        Tide_fname = "TideEilatGulf_new.csv"
+        Tide_fname = "TideEilatGulf_L1.csv"
     elif geo_location =='Plymouth_L4':
         latitude_deg = 50.27; longitude_deg = -4.13
-        Tide_fname = "TidePlymouth_new.csv"
-
+        Tide_fname = "TidePlymouth_L1.csv"
     elif geo_location == 'Plymouth_Dockyard':
         latitude_deg = 50.3819; longitude_deg = -4.1927 #  lat; lon # Plymouth (L4)
-        Tide_fname = "TidePlymouth_new.csv"
+        Tide_fname = "TidePlymouth_L1.csv"
+    elif geo_location =='Tokyo':
+        latitude_deg = 35.575; longitude_deg = 139.908
+        Tide_fname = "TideTokyo_L1.csv"
+    elif geo_location == 'Lagos':
+        latitude_deg = 6.5244; longitude_deg = 3.3792
+        Tide_fname = "TideLagos_L1.csv"
+    elif geo_location == 'NewYork':
+        latitude_deg = 40.7128; longitude_deg = -74.0060
+        Tide_fname = "TideNewYork_L1.csv"
+    elif geo_location == 'LosAngeles':
+        latitude_deg = 34.0522; longitude_deg = -118.2437
+        Tide_fname = "TideLosAngeles_L1.csv"
+    elif geo_location == 'BuenosAires':
+        latitude_deg = -34.6037; longitude_deg = -58.3816
+        Tide_fname = "TideBuenosAires_L1.csv"
+    elif geo_location == 'Shanghai':
+        latitude_deg = 31.2304; longitude_deg = 121.4737
+        Tide_fname = "TideShanghai_L1.csv" 
+    elif geo_location == 'Mumbai':
+        latitude_deg = 19.0760; longitude_deg = 72.8777
+        Tide_fname = "TideMumbai_L1.csv"
+    #elif geo_location == 'GEOTAG':
+    #    latitude_deg = LATLATLAT; longitude_deg = LONLONLON
+    #    Tide_fname = "TideGEOTAG_L1.csv"
     
     if args.latitude:
         latitude_deg = args.latitude
@@ -308,50 +379,106 @@ def main():
     
     if (args.tidal):
         
-##      Read in tidal data from BODC
         print('Running tidal model...')
-        
-        tidepath = os.getcwd() + "/Required/" + Tide_fname # path of data file output
-        tides_ = pd.read_csv(tidepath, delimiter=',', engine='python') #usecols=np.arange(16,48), engine='python')
-        df = pd.DataFrame(tides_)
-        for i in range(len(tides_)):
 
-##          Convert/alter DataFrame Variables to type datetime and float
-            tide_date = df.iloc[i,0]
-            tide_level =df.iloc[i,1]
-            tide_level = float(tide_level)
-
-##          Convert date to datetime format
-           
-            if geo_location == 'Eilat':
-                T = datetime.datetime.strptime(tide_date, '%d/%m/%Y %H:%M') # Eilat Gulf + Cape Ferguson
-            else: 
-                T = datetime.datetime.strptime(tide_date, '%Y/%m/%d %H:%M:%S') # Plymouth
-##          append variables to lists
-            TL.append(tide_level)
-            t.append(T)
         if args.datum_percentage:
             datum_percentage = args.datum_percentage
         else:
             datum_percentage = 0.1
+        
+        if args.TideCoef:
+           # Imperfect solution in order to get maximum tide and datum
+           # 1. Generate list of date & time for 1 year at 15 minute resolution
+           dts = (pd.DataFrame(columns=['NULL'],index=pd.date_range('2019-01-01T00:00:00Z', '2020-01-01T00:00:00Z',freq='60T')).between_time('00:00','23:59').index.strftime('%Y-%m-%d %H:%M:%S').tolist())
+           dts_ = (pd.DataFrame(columns=['NULL'],index=pd.date_range('2019-01-01T00:00:00Z', '2020-01-01T00:00:00Z',freq='60T')).between_time('00:00','23:59').index.strftime('%Y/%m/%d %H:%M:%S').tolist())
+           tidetime = pd.to_datetime(dts)
+           time = mdates.date2num(tidetime.to_pydatetime())
+           # Get tidal coefficients from TPXO model
+           # This bit isn't working properly - likely error is in the Tidal coefficient database
+           # Need to write code which looks at the TPXO netcdf files stored in /data/sthenno1/backup/pica/data/TPXO/DATA
+           print('     using global model (TPXO) for tidal coefficients')
+           c = get_TidalCoef.get_TidalCoef(geo_location, time[0])
+           # 2. Reconstruct the tide over that year
+           TCreconst = utide.reconstruct(time, c)
+           TL = TCreconst.h
+
+           df_tide_out = pd.DataFrame()
+           df_tide_out['Time'] = dts_
+           df_tide_out['Tide'] = TL
+           tidepath = os.getcwd() + "/Required/TideGauge/"
+           df_tide_out.to_csv(tidepath+"Output.csv", index=False, header=False)
+           
+           # Back calculate the tidal coefficients from TPXO gauge data 
+           #tide = np.array(TL, dtype=float)
+           #c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
+           #                nodal=False,
+           #                trend=False,
+           #                method='ols',
+           #                conf_int='linear',
+           #                Rayleigh_min=0.95)
+
+        else:
+##         Read in tidal data 
+##         Tidal data from a variety of sources 
+##         1. PSMSL
+##            https://www.psmsl.org/data/
+##         2. University of Hawaii Sea Level Centre
+##            http://uhslc.soest.hawaii.edu/data/
+##         3. Generate data from the TPXO data files 
+##            https://tpxows.azurewebsites.net/  
+##            ==> generate weekly tidal data, multiple times and then create a ?_L1.csv file from about a month's worth of data
+##         Use routines found in the Tide_PrePro directory and create a suitable ?_L1.csv file
+##         Put data in Model/Required/TideGauge directory
+
+##         https://www.tide-forecast.com/ - good site for eyeballing how accurately the tide is recreated.
+
+           print('     using tidegauge data for tidal coefficients')
+           tidepath = os.getcwd() + "/Required/TideGauge/" + Tide_fname # path of data file output
+           tides_ = pd.read_csv(tidepath, delimiter=',', engine='python') #usecols=np.arange(16,48), engine='python')
+           df = pd.DataFrame(tides_)
+           for i in range(len(tides_)):
+
+##          Convert/alter DataFrame Variables to type datetime and float
+              tide_date = df.iloc[i,0]
+              tide_level =df.iloc[i,1]
+              tide_level = float(tide_level)
+
+##          Convert date to datetime format
+              T = datetime.datetime.strptime(tide_date, '%Y/%m/%d %H:%M:%S') # All stations to a standard timestamp
+##          append variables to lists
+              TL.append(tide_level)
+              t.append(T)
+
+##         Convert time back to DataFrame
+           t_df = pd.to_datetime(t)
+##         Convert time to format of UTide ##'date2num' function only seems to work with pandas DF ##
+           time = mdates.date2num(t_df.to_pydatetime())
+
+           # Calculate the tidal coefficients from tide gauge data 
+           tide = np.array(TL, dtype=float)
+           c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
+                           nodal=False,
+                           trend=False,
+                           method='ols',
+                           conf_int='linear',
+                           Rayleigh_min=0.95)
+
+
+           # 1. Generate list of date & time for time period of interest at 1 hour resolution
+           dts = (pd.DataFrame(columns=['NULL'],index=pd.date_range(start_date, end_date,freq='60T')).between_time('00:00','23:59').index.strftime('%Y-%m-%d %H:%M:%S').tolist())
+           tidetime = pd.to_datetime(dts)
+           time = mdates.date2num(tidetime.to_pydatetime())
+           # 2. Reconstruct the tide over that period so can determine datum more satisfactorily
+           TCreconst = utide.reconstruct(time, c)
+           TL = TCreconst.h
+
         if args.datum:
             datum = args.datum
         else:
-            datum = round((max(TL)*datum_percentage),2) # Standard: use 10% of the max tide height       <-------------- Select datum %
-##      Convert time back to DataFrame
-        t_df = pd.to_datetime(t)
-##      Convert time to format of UTide ##'date2num' function only seems to work with pandas DF ##
-        time = mdates.date2num(t_df.to_pydatetime())
-        tide = np.array(TL, dtype=float)
-        c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
-                        nodal=False,
-                        trend=False,
-                        method='ols',
-                        conf_int='linear',
-                        Rayleigh_min=0.95)
+            datum = round((min(TL) + (max(TL) - min(TL))*datum_percentage),2)
+            
         print('     finished tidal model...')
-    
-    
+        
     #                                         TidalLight - MODEL BREAKDOWN
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #                                           SOLAR MODULE: args.solar
@@ -378,7 +505,7 @@ def main():
     #
     # Models tidal range for a given location using the UTide function which creates the relevant harmonic coefficients
     # for a data set from a coastal observatory with time-series data. The data for the UK is collected from the BODC website.
-    # Data file must be in the same location as the scirpt*
+    # Data file must be in the same location as the script*
     # Roberts et al., (2018) describes the proccess through which intensity is attenuated through the water columnn.
 
     ##############################################
@@ -399,11 +526,9 @@ def main():
         if args.tidal:
             monthly_Kd_idx = Kd_Falchi_Output[Kd_Falchi_Output['Month'] == month].index[0] # Match the month of the loop to the correct Kd 
             kd_red = Kd_R[monthly_Kd_idx]; kd_green = Kd_G[monthly_Kd_idx]; kd_blue = Kd_B[monthly_Kd_idx] # Assign monthly Kd to variable
-            kd_red_record.append(kd_red); kd_green_record.append(kd_green); kd_blue_record.append(kd_blue)
             KD = [kd_red, kd_green, kd_blue] # create a Kd array
             #KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
             KD_Bb = np.mean(KD) # Calculate Broadband Kd
-            KD_Bb_record.append(KD_Bb)
             #enablePrint()
             #pdb.set_trace()
             #blockPrint()
@@ -427,6 +552,8 @@ def main():
                 dec_day.append(dday) 
                 altitude_deg = get_altitude(latitude_deg, longitude_deg, date) # Retrieve altitude of the sun
                 Solar_altitude.append(altitude_deg)
+                kd_red_record.append(kd_red); kd_green_record.append(kd_green); kd_blue_record.append(kd_blue)
+                KD_Bb_record.append(KD_Bb)
                 # Print Sunset/Sunrise times to terminal
                 # if 0.1>altitude_deg>-0.1:
                 #     if hour<12: 
@@ -641,9 +768,8 @@ def main():
                     if reconst.h<=datum:     
                         depth_to_datum = float(0) 
                     waterdepth.append(depth_to_datum)
-                    print(depth_to_datum)
                     
-                    kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
+                    #kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
 
 ########################################################
         # ATTENUATION OF INTENSITY TO SEABED                 
@@ -808,61 +934,21 @@ def main():
     ALAN_datum_dosage_df = pd.DataFrame(np.array(datum_intensity_ALAN).reshape(-1,3), columns = list("RGB"))
 
 
-    #### FEEL LIKE THIS COULD BE CONDENSED INTO A FUNCTION..
 ################################################################################
 #                               Sums and checks 
 ################################################################################
     if args.solar:
         # Solar Total: Spectral check
-        Total_Bb = max(Io)
-        Tot = np.array([])
-        Tot_atm = np.array([])
-        for ii in range(len(SolSpec.columns)):
-            MAX = max(SolI_SS.iloc[:,ii]) # At the surface
-            MAX_atm = max(SolI_SS_TOA.iloc[:,ii])
-            Tot = np.append(Tot, MAX)
-            Tot_atm = np.append(Tot_atm, MAX_atm)
-        Total_ss = np.sum(Tot)
-        Total_ss_atm = np.sum(Tot_atm)
-        
-        print("SOLAR:\n     Max PAR[W/m2] at surface =", Total_Bb)
-        print("     Max PAR[W/m2] at TOA =", Isc)
-        print("     Max summed RGB[W/m2] at surface =", Total_ss)
-        print("     Max summed RGB[W/m2] at TOA =", Total_ss_atm)
-        
-        #enablePrint()
-        #pdb.set_trace()
-        #blockPrint()
-        
+        Spectral_Check(Io, I_atmos, SolSpec.columns, SolI_SS, SolI_SS_TOA, "SOLAR", Isc)
+
     if args.lunar:
         # Lunar Total: Spectral check 
-        Total_Bb = max(I)
-        Total_Bb_atm = max(I_atmos)
-        Tot = np.array([])
-        Tot_atm = np.array([])
-        for ii in range(len(LunSpec.columns)):
-            MAX = max(LunI_LS.iloc[:,ii]) # At the surface
-            MAX_atm = max(LunI_LS_atm.iloc[:,ii])
-            Tot = np.append(Tot, MAX)
-            Tot_atm = np.append(Tot_atm, MAX_atm)
-        Total_ls = np.sum(Tot)
-        Total_ls_atm = np.sum(Tot_atm)
-
-        print("LUNAR: \n     Max PAR[uW/m2] at surface =", Total_Bb)
-        print("     Max PAR[uW/m2] at TOA =", Total_Bb_atm)
-        print("     Max summed RGB[uW/m2] at surface =", Total_ls)
-        print("     Max summed RGB[uW/m2] at TOA =", Total_ls_atm)
+        Spectral_Check(I, I_atmos, LunSpec.columns, LunI_LS, LunI_LS_atm, "LUNAR", Isc)
 
     if args.ALAN:
         # ALAN Total: Spectral check
-        Total_Bb = max(A)
-        Tot = np.array([])
-        for ii in range(len(ASpec.columns)):
-            MAX = max(AI_AS.iloc[:,ii]) # At the surface
-            Tot = np.append(Tot, MAX)
-        Total_As = np.sum(Tot)
-        print("ALAN:\n     Total Broadband signature at surface =", Total_Bb)
-        print("     Total Spectral signature (summed) at surface =", Total_As)
+        Spectral_Check(A, I_atmos, ASpec.columns, AI_AS, AI_AS, "ALAN", Isc)
+
 #############################################################
 #                        Plots 
 #############################################################
@@ -875,15 +961,13 @@ def main():
         
         if args.solar:
             Solplot_RGB.SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum,datum_percentage, location, figurepath)
+            
             # Solplot_RGB.Sol3d(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, datum,datum_percentage)
             # Solplot_RGB.SolRes(dec_day, SolSpec, SolI_SS, SolI_SSb, SolI_SSRes, tide_h, waterdepth, sol, datum, datum_percentage)
             
-
         if args.lunar:
-            #enablePrint()
-            #pdb.set_trace()
-            #blockPrint()
             Lunplot_RGB.LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT, datum,datum_percentage, phase, location, figurepath)
+
             # Lunplot_RGB.Lun3d(dec_day, LunSpec, LunI_LSb, LunI_LSRes, LunI_LS, datum)
             # Lunplot_RGB.LunRes(dec_day, LunSpec, LunI_LS, LunI_LSb, LunI_LSRes, tide_h, waterdepth, sol, datum)
             
@@ -893,8 +977,6 @@ def main():
             # Aplot_RGB.A3d(dec_day, ASpec, AI_ASb, AI_ASRes, AI_AS, datum)
             # Aplot_RGB.ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, sol, datum)
         
-        # plt.plot(dec_day, Zc)
-        # plt.show()
     ###############################################
     #                   Outputs 
     ###############################################
@@ -959,7 +1041,7 @@ def main():
     
 ###############################################
 #      Thank you for using TidalLight
-#   Authours: Adam E Wright, Tim Smyth, ...
+#   Authors: Adam E Wright, Tim Smyth, ...
 ###############################################  
   
 # Run script if called from command line.   

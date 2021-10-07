@@ -7,7 +7,7 @@ echo 	"FILEPATH:"	$filepath # print variable
 filename=$(nawk '/</ {} NR==2' $readfile)
 filename=${filename#?}
 echo	"FILENAME:"	$filename
-fname_new="${filename%????}_new.csv" # rename variable by removing last 4 characters
+fname_new="${filename%????}_L1.csv" # rename variable by removing last 4 characters
 echo	"NEW FILENAME:"	$fname_new
 year=$(nawk '/</ {} NR==6' $readfile)
 year=${year#?}
@@ -23,7 +23,8 @@ head $filename
 sed -e 1,${start_row}d $filename > $fname_new   # remove all daa + headers prior to first instance and save to a new filem
 echo "first new-file"
 head $fname_new
-#!/bin/bash
-cut -d ',' -f 1-2 $fname_new | sed -i 's/,/\ /' $fname_new # replace the first comma with a whitespace 
+cat $fname_new | awk 'BEGIN {FS=","};{printf("%04d/%02d/%02d %s:00, %5.3f\n", $3,$2,$1,$4,$5/100.)}' > tmp.txt
+/bin/mv tmp.txt $fname_new
+#cut -d ',' -f 1-2 $fname_new | sed -i 's/,/\ /' $fname_new # replace the first comma with a whitespace 
 echo "New file:"
 head $fname_new
