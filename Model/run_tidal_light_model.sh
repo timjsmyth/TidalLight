@@ -2,7 +2,7 @@
 ## declare an array variable holding the locations
 
 declare -a locations=("Tokyo" "Eilat" "Plymouth_Dockyard" "Lagos" "NewYork" "LosAngeles" "BuenosAires" "Shanghai" "Mumbai")
-declare -a locations=("BuenosAires")
+declare -a locations=("Plymouth_Dockyard")
 
 # Datum fraction (e.g. 0.5 = 50%)
 DP=0.25
