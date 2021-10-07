@@ -732,12 +732,9 @@ def main():
                     tidetime = pd.to_datetime(fmt_date) # convert to dataframe
                     tide_time = mdates.date2num(tidetime.to_pydatetime()) # mdates is the required format for UTide, this is the only way I managed to get the function to work
                     reconst = utide.reconstruct(tide_time, c) # Reconstruct a tidal model for the selected date range using the constants 'c' determined by the tidal module
-                    #tide_h.append(reconst.h - MINTIDE) # retrieve tide height (sea level) and store in a list, remembering to remove the MINTIDE
-                    #depth_to_datum = float(reconst.h - MINTIDE - datum) # depth_to_datum = height of water column above datum
-                    #if (reconst.h - MINTIDE)<=datum:     
                     tide_h.append(reconst.h) # retrieve tide height (sea level) and store in a list
                     depth_to_datum = float(reconst.h - datum) # depth_to_datum = height of water column above datum
-                    if reconst.h <=datum:     
+                    if reconst.h<=datum:     
                         depth_to_datum = float(0) 
                     waterdepth.append(depth_to_datum)
                     

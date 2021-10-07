@@ -26,6 +26,7 @@ pd.options.mode.chained_assignment = None
 
 def get_TidalCoef(geo_location, reftime):
 
+   # The major constituents only
    constituents = ['M2', 'K1', 'S2', 'O1']
    const_idx = np.asarray([ut_constants['const']['name'].tolist().index(i) for i in constituents])
    frq = ut_constants['const']['freq'][const_idx]
