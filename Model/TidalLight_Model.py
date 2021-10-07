@@ -134,8 +134,8 @@ def main():
             start_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
             end_date = datetime.datetime.utcnow()
     else:
-        start_date = "2021-06-17"; print("Start date: ", start_date)
-        end_date = "2021-06-28"; print("End date: ", end_date)
+        start_date = "2010-12-31"; print("Start date: ", start_date)
+        end_date = "2011-01-02"; print("End date: ", end_date)
     data_start_date = subprocess.getoutput(f"date --date '{start_date}' +'%F %H:%M:%S'")
     #print("Start date", data_start_date)
     data_end_date = subprocess.getoutput(f"date --date '{end_date}' +'%F %H:%M:%S'")
@@ -279,9 +279,10 @@ def main():
         ASpec = pd.DataFrame(data,columns=["Red", "Green", "Blue"])
 
     # Assign empty variables
-    sol = []; night = []; dec_day = []; Io = []; IBT= []; solar_surface = []; solar_datum = []
+    sol = []; night = []; dec_day = []; Io = []; IBT= []; solar_surface = []; solar_datum = []; Solar_altitude = []
     alt = []; az = []; phase = []; I = []; lIBT = []; I_atmos = []; lunar_surface= []; lunar_datum = []
     A = []; aIBT = []; ALAN_surface = []; ALAN_datum = []
+    KD_Bb_record = []; kd_red_record = []; kd_green_record = []; kd_blue_record = []
     TL = []; t = []; waterdepth = []; tide_h = []; Zc = []
     frames = []; Lun_frames = []; Sol_frames = []; A_frames = []
     date_record = []; day_summed =[]; fullmoon_mask = []
@@ -398,13 +399,14 @@ def main():
         if args.tidal:
             monthly_Kd_idx = Kd_Falchi_Output[Kd_Falchi_Output['Month'] == month].index[0] # Match the month of the loop to the correct Kd 
             kd_red = Kd_R[monthly_Kd_idx]; kd_green = Kd_G[monthly_Kd_idx]; kd_blue = Kd_B[monthly_Kd_idx] # Assign monthly Kd to variable
+            kd_red_record.append(kd_red); kd_green_record.append(kd_green); kd_blue_record.append(kd_blue)
             KD = [kd_red, kd_green, kd_blue] # create a Kd array
             #KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
             KD_Bb = np.mean(KD) # Calculate Broadband Kd
+            KD_Bb_record.append(KD_Bb)
             #enablePrint()
             #pdb.set_trace()
             #blockPrint()
-
         enablePrint()
         print(model_date)
         blockPrint()
@@ -424,7 +426,7 @@ def main():
                 Ecc = (1.0+1.67E-2*np.cos(2.0*np.pi*float(dday-3)/365.0))**2 # correction for eccentricity of Earth's orbit
                 dec_day.append(dday) 
                 altitude_deg = get_altitude(latitude_deg, longitude_deg, date) # Retrieve altitude of the sun
-
+                Solar_altitude.append(altitude_deg)
                 # Print Sunset/Sunrise times to terminal
                 # if 0.1>altitude_deg>-0.1:
                 #     if hour<12: 
@@ -485,7 +487,7 @@ def main():
 ##                  Calculate Intensity based on the Earth's orbital eccentricity
                     #Iatmos = Isc*Ecc
 ##                  Calculate Iatmos for each wavelength
-                    SSurface = np.array([])
+                    SSurface = np.array([]) # removed square brackets
                     #SAtmos = np.array([])
                     STOA = np.array([])
                     
@@ -518,7 +520,7 @@ def main():
                     else:
                         IO = PARSurface # Broadband
                         #IO = Iatmos*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos_bb) # Broadband
-                    Io.append(IO)
+                    Io.append(float(IO))
                 
 ######################################################## 
 
@@ -550,6 +552,7 @@ def main():
                     # Lunar albedo: 
                     # Lane & Irvine (1973) ~12% for full moon DOI: 10.1086/111414
                     # Buratti et al., (1996) ~16% (zero phase value)
+
                     Lunar_albedo = 0.16
                     dt = Time(date) # Time within model
                     EarthMoon = get_moon(dt, location) # Relative positioning              
@@ -566,7 +569,7 @@ def main():
                     LUNFACTOR = lun_sva*albedo_phased
                     # Iatmos in place of Isc - to correct for eccentricity of Earth (moon) orbit 
                     #Lunar_refl = Iatmos*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
-                    Lunar_refl = PARTOA*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
+                    Lunar_refl = float(PARTOA*lun_sva*albedo_phased*1000000.) # convert from W/m^2 to uW/m^2  
                     #airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
                     airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:
@@ -583,9 +586,9 @@ def main():
                     alt.append(alt_)
                     phase.append(Phase)
                     az.append(az_)
-                    I.append(Iol)
+                    I.append(float(Iol))
                     I_atmos.append(Lunar_refl)
-
+    
                     LSurface = np.array([])
                     LAtmos = np.array([])
                     #for ll in range(len(LunSpec.columns)):
@@ -633,7 +636,7 @@ def main():
                     tide_time = mdates.date2num(tidetime.to_pydatetime()) # mdates is the required format for UTide, this is the only way I managed to get the function to work
                     reconst = utide.reconstruct(tide_time, c) # Reconstruct a tidal model for the selected date range using the constants 'c' determined by the tidal module
                     
-                    tide_h.append(reconst.h) # retrieve tide height (sea level) and store in a list
+                    tide_h.append(float(reconst.h)) # retrieve tide height (sea level) and store in a list
                     depth_to_datum = float(reconst.h-datum) # depth_to_datum = height of water column above datum
                     if reconst.h<=datum:     
                         depth_to_datum = float(0) 
@@ -846,7 +849,7 @@ def main():
         Total_ls_atm = np.sum(Tot_atm)
 
         print("LUNAR: \n     Max PAR[uW/m2] at surface =", Total_Bb)
-        print('     Max PAR[uW/m2] at TOA =', Total_Bb_atm)
+        print("     Max PAR[uW/m2] at TOA =", Total_Bb_atm)
         print("     Max summed RGB[uW/m2] at surface =", Total_ls)
         print("     Max summed RGB[uW/m2] at TOA =", Total_ls_atm)
 
@@ -860,7 +863,6 @@ def main():
         Total_As = np.sum(Tot)
         print("ALAN:\n     Total Broadband signature at surface =", Total_Bb)
         print("     Total Spectral signature (summed) at surface =", Total_As)
-
 #############################################################
 #                        Plots 
 #############################################################
@@ -892,12 +894,12 @@ def main():
             # Aplot_RGB.ARes(dec_day, ASpec, AI_AS, AI_ASb, AI_ASRes, tide_h, waterdepth, sol, datum)
         
         # plt.plot(dec_day, Zc)
-        plt.show()
+        # plt.show()
     ###############################################
     #                   Outputs 
     ###############################################
     print("Output section still requires updating don't know what the new standard 'TidalLight' model output should be")
-    # pdb.set_trace()
+
     Dosage = pd.concat([ALAN_datum_dosage_df, Lun_datum_dosage_df, Sol_datum_dosage_df], keys=["ALAN_(uW/m2)", "Lunar_(uW/m2)", "Solar_(uW/m2)"], axis=1)
     Dosage.to_csv(f"Output/Dosage_{year}_{location}.csv")
     if args.output:
@@ -907,30 +909,21 @@ def main():
         Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
         datapath = os.getcwd() + "/Output/" + Output_fname # path of data file output
         sta = timeit.default_timer()
-        df0 = pd.DataFrame({'Location_Lat (deg)' : latitude_deg, 'Location_Long (deg)' : longitude_deg, 'time_increment (m)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_range (m)' : tide_h, 'date' : date_record, 'Jday (decimal)' : dec_day, 'Kd Blue' : kd_blue, 'Kd Green' : kd_green, 'Kd Red' : kd_red, 'Kd Bb' : KD_Bb})
-        frames.append(df0)
-        # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
-        # change_output_name = input()
-        # if change_output_name=="Y":
-        #     print("type unique identifier for output data")
-        #     identifier = input()
-        
+        df0 = pd.DataFrame({'Location_Lat (deg)' : latitude_deg, 'Location_Long (deg)' : longitude_deg, 'time_increment (m)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_range (m)' : tide_h, 'date' : date_record, 'Jday (decimal)' : dec_day, 'Kd Blue' : kd_blue_record, 'Kd Green' : kd_green_record, 'Kd Red' : kd_red_record, 'Kd Bb' : KD_Bb_record})
+
         if args.solar: 
             # Normalise and store data
             NSolI_SSb = pd.DataFrame(columns=col_names_SS)
             NSolI_SS = pd.DataFrame(columns=col_names_SS)
             NSSb = np.array([])
             NSS = np.array([])
-
-            df1 = pd.DataFrame({'Solar_Alt (deg)' : altitude_deg, 'binary_day' : sol, 'BB_I_(W/m2)' : Io, 'BB_I_Below_tide_(W/m2)' : IBT})
-          
             for ss in range(len(col_names_SS)):
-                
                 NSolI_SS.iloc[:,ss] = (SolI_SS.iloc[:,ss]/max(SolI_SS.iloc[:,ss]))
                 NSolI_SSb.iloc[:,ss] = (SolI_SSb.iloc[:,ss]/max(SolI_SSb.iloc[:,ss]))
+            df1 = pd.DataFrame({'Solar_Alt (deg)' : Solar_altitude, 'binary_day' : sol, 'BB_I_(W/m2)' : Io, 'BB_I_Below_tide_(W/m2)' : IBT})
             Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], keys =['','Solar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
             Sresult.to_csv('Output/Solar_' + Output_fname)
-            
+        
         if args.lunar:
             # Normalise and store data
             NLunI_LSb = pd.DataFrame(columns=col_names_SS)
@@ -963,7 +956,6 @@ def main():
             Aresult.to_csv(f'Output/ALAN_' + Output_fname)
         sto = timeit.default_timer()
         print('Data output completed in', (sto-sta)/60, 'minutes')
-        plt.show()
     
 ###############################################
 #      Thank you for using TidalLight
@@ -973,7 +965,6 @@ def main():
 # Run script if called from command line.   
 if __name__=='__main__':
     main()
-    plt.show()
   
         
        
