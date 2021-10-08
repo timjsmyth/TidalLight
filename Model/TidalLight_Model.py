@@ -323,10 +323,10 @@ def main():
         ASpec = pd.DataFrame(data,columns=["Red", "Green", "Blue"])
 
     # Assign empty variables
-    sol = []; night = []; dec_day = []; Io = []; IBT= []; solar_surface = []; solar_datum = []
+    sol = []; night = []; dec_day = []; Io = []; IBT= []; solar_surface = []; solar_datum = []; solar_alt = [];
     alt = []; az = []; phase = []; I = []; lIBT = []; I_atmos = []; lunar_surface= []; lunar_datum = []
     A = []; aIBT = []; ALAN_surface = []; ALAN_datum = []
-    TL = []; t = []; waterdepth = []; tide_h = []; Zc = []
+    TL = []; t = []; waterdepth = []; tide_h = []; ftide_h = []; Zc = []
     frames = []; Lun_frames = []; Sol_frames = []; A_frames = []
     date_record = []; day_summed =[]; fullmoon_mask = []
     datum_intensity_Lunar = []; datum_intensity_ALAN = []; datum_intensity_Solar = []
@@ -336,11 +336,18 @@ def main():
     # col_names_g = ['500', '510', '520', '530', '540', '550', '560']
     # col_names_b = ['400', '410', '420', '430', '440', '450', '460', '470', '480', '490', '500']
     col_names_SS = ['Red', 'Green', 'Blue'] # To this end SS Solar Spec and LS Lunar Spec are equal in index
-
+    col_names_SS_sol = ['I_Red(W/m2)','I_Green(W/m2)','I_Blue(W/m2)']
+    col_names_SS_lun = ['I_Red(uW/m2)','I_Green(uW/m2)','I_Blue(uW/m2)']
+    col_names_SS_A = ['I_Red(uW/m2)','I_Green(uW/m2)','I_Blue(uW/m2)']
+    
+    col_names_SS_sol_datum = ['I_Red_datum(W/m2)','I_Green_datum(W/m2)','I_Blue_datum(W/m2)']
+    col_names_SS_lun_datum = ['I_Red_datum(uW/m2)','I_Green_datum(uW/m2)','I_Blue_datum(uW/m2)']
+    col_names_SS_A_datum = ['I_Red_datum(uW/m2)','I_Green_datum(uW/m2)','I_Blue_datum(uW/m2)']
+    
     # Spectral Intensity Dataframes
-    SolI_SSb = pd.DataFrame(columns=col_names_SS); LunI_LSb = pd.DataFrame(columns=col_names_SS); AI_ASb = pd.DataFrame(columns=col_names_SS)
-    SolI_SS = pd.DataFrame(columns=col_names_SS); LunI_LS = pd.DataFrame(columns=col_names_SS); AI_AS = pd.DataFrame(columns=col_names_SS)
-    SolI_SS_TOA = pd.DataFrame(columns=col_names_SS); LunI_LS_atm = pd.DataFrame(columns=col_names_SS)
+    SolI_SSb = pd.DataFrame(columns=col_names_SS_sol_datum); LunI_LSb = pd.DataFrame(columns=col_names_SS_lun_datum); AI_ASb = pd.DataFrame(columns=col_names_SS_A_datum)
+    SolI_SS = pd.DataFrame(columns=col_names_SS_sol); LunI_LS = pd.DataFrame(columns=col_names_SS_lun); AI_AS = pd.DataFrame(columns=col_names_SS_A)
+    SolI_SS_TOA = pd.DataFrame(columns=col_names_SS_sol); LunI_LS_atm = pd.DataFrame(columns=col_names_SS_lun)
     SolI_SSRes = pd.DataFrame(columns=col_names_SS); LunI_LSRes = pd.DataFrame(columns=col_names_SS); AI_ASRes = pd.DataFrame(columns=col_names_SS)
     crit_depth = np.arange(0, 200, 0.25).tolist()
 
@@ -524,6 +531,7 @@ def main():
                 Ecc = (1.0+1.67E-2*np.cos(2.0*np.pi*float(dday-3)/365.0))**2 # correction for eccentricity of Earth's orbit
                 dec_day.append(dday) 
                 altitude_deg = get_altitude(latitude_deg, longitude_deg, date) # Retrieve altitude of the sun
+                solar_alt.append(altitude_deg)
 
                 # Print Sunset/Sunrise times to terminal
                 # if 0.1>altitude_deg>-0.1:
@@ -618,7 +626,7 @@ def main():
                     else:
                         IO = PARSurface # Broadband
                         #IO = Iatmos*np.sin(np.deg2rad(altitude_deg))*np.exp(-1.*airmass*k_atmos_bb) # Broadband
-                    Io.append(IO)
+                    Io.append(float(IO))
                 
 ######################################################## 
 
@@ -683,8 +691,8 @@ def main():
                     alt.append(alt_)
                     phase.append(Phase)
                     az.append(az_)
-                    I.append(Iol)
-                    I_atmos.append(Lunar_refl)
+                    I.append(float(Iol))
+                    I_atmos.append(float(Lunar_refl))
 
                     LSurface = np.array([])
                     LAtmos = np.array([])
@@ -736,6 +744,7 @@ def main():
                     depth_to_datum = float(reconst.h - datum) # depth_to_datum = height of water column above datum
                     if reconst.h<=datum:     
                         depth_to_datum = float(0) 
+                    ftide_h.append(float(reconst.h))
                     waterdepth.append(depth_to_datum)
                     
                     #kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
@@ -1003,7 +1012,7 @@ def main():
         Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
         datapath = os.getcwd() + "/Output/" + Output_fname # path of data file output
         sta = timeit.default_timer()
-        df0 = pd.DataFrame({'Location_Lat (deg)' : latitude_deg, 'Location_Long (deg)' : longitude_deg, 'time_increment (m)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_range (m)' : tide_h, 'date' : date_record, 'Jday (decimal)' : dec_day, 'Kd Blue' : kd_blue, 'Kd Green' : kd_green, 'Kd Red' : kd_red, 'Kd Bb' : KD_Bb})
+        df0 = pd.DataFrame({'Location_Lat(degN)' : latitude_deg, 'Location_Lon(degE)' : longitude_deg, 'time_increment(hr)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_depth(m)' : ftide_h, 'date' : date_record, 'Jday(decimal)' : dec_day, 'Kd_Blue(1/m)' : kd_blue, 'Kd_Green(1/m)' : kd_green, 'Kd_Red(1/m)' : kd_red, 'Kd_Bb(1/m)' : KD_Bb})
         frames.append(df0)
         # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
         # change_output_name = input()
@@ -1018,14 +1027,16 @@ def main():
             NSSb = np.array([])
             NSS = np.array([])
 
-            df1 = pd.DataFrame({'Solar_Alt (deg)' : altitude_deg, 'binary_day' : sol, 'BB_I_(W/m2)' : Io, 'BB_I_Below_tide_(W/m2)' : IBT})
+            df1 = pd.DataFrame({'Solar_Alt(deg)' : solar_alt, 'night(0)_day(1)' : sol, 'I_BB(W/m2)' : Io, 'I_BB_Datum(W/m2)' : IBT})
           
             for ss in range(len(col_names_SS)):
                 
                 NSolI_SS.iloc[:,ss] = (SolI_SS.iloc[:,ss]/max(SolI_SS.iloc[:,ss]))
                 NSolI_SSb.iloc[:,ss] = (SolI_SSb.iloc[:,ss]/max(SolI_SSb.iloc[:,ss]))
-            Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], keys =['','Solar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
-            Sresult.to_csv('Output/Solar_' + Output_fname)
+            #Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], keys =['','Solar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            #Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], axis=1)
+            Sresult = pd.concat([df0, df1, SolI_SS, SolI_SSb], axis=1)
+            Sresult.to_csv('Output/Solar_' + Output_fname, index=False)
             
         if args.lunar:
             # Normalise and store data
@@ -1034,11 +1045,12 @@ def main():
             for ll in range(len(col_names_SS)):
                 NLunI_LSb.iloc[:,ll] = (LunI_LSb.iloc[:,ll]/max(LunI_LSb.iloc[:,ll]))
                 NLunI_LS.iloc[:,ll] = (LunI_LS.iloc[:,ll]/max(LunI_LS.iloc[:,ll]))
-            df2 = pd.DataFrame({'Lunar_Alt (deg)' : alt, 'Lunar_Az (deg)': az, 'phase' : phase, 'I_atmos' : I_atmos, 'BB_I(uW/m2)': I, 'BB_I_Below_tide(uW/m2)' : lIBT})
-            Lresult = pd.concat([df0, df2, NLunI_LS, NLunI_LSb, LunI_LS, LunI_LSb, LunI_LSRes, ], keys= ['', 'Lunar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            df2 = pd.DataFrame({'Lunar_Alt (deg)' : alt, 'Lunar_Az (deg)': az, 'phase' : phase, 'I_TOA(uW/m2)' : I_atmos, 'I_BB(uW/m2)': I, 'I_BB_datum(uW/m2)' : lIBT})
+            #Lresult = pd.concat([df0, df2, NLunI_LS, NLunI_LSb, LunI_LS, LunI_LSb, LunI_LSRes, ], keys= ['', 'Lunar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            Lresult = pd.concat([df0, df2, LunI_LS, LunI_LSb], axis=1)
             # if change_output_name == "Y":
             #     Output_fname = identifier + Output_fname
-            Lresult.to_csv('Output/Lunar_' + Output_fname)
+            Lresult.to_csv('Output/Lunar_' + Output_fname, index=False)
 
         if args.ALAN:
             # Normalise and store data
@@ -1047,8 +1059,9 @@ def main():
             for aa in range(len(col_names_SS)):
                 NAI_ASb.iloc[:,aa] = (AI_ASb.iloc[:,aa]/max(AI_ASb.iloc[:,aa]))
                 NAI_AS.iloc[:,aa] = (AI_AS.iloc[:,aa]/max(AI_AS.iloc[:,aa]))   
-            df3 = pd.DataFrame({'binary_day' : sol, 'sky_condition': condition, 'Falchi_ALAN (mCd/m^2)': ALAN_mCd, 'ALAN_Bb (uW/m^2)' : ALAN_total, 'ALAN_BB_Below_tide(uW/m^2)': aIBT}) 
-            Aresult = pd.concat([df0, df3, NAI_AS, NAI_ASb, AI_AS, AI_ASb, AI_ASRes], keys= ['','ALAN', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : ALAN_total, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
+            #Aresult = pd.concat([df0, df3, NAI_AS, NAI_ASb, AI_AS, AI_ASb, AI_ASRes], keys= ['','ALAN', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
+            Aresult = pd.concat([df0, df3, AI_AS, AI_ASb], axis=1)
             Output_fname = f"{geo_location}_DATA_{sky_condition}_{tt_s}-{tt_e}_Datum-{datum_percentage}MST.csv" # filename of data output (MST = Mean Spring Tide)
             # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
             if args.station:
@@ -1056,7 +1069,7 @@ def main():
                 d = {"ALAN_R_Depth[620-740nm](uW/m2)": A_zR, "R_Depth(m)": zR, "ALAN_G_Depth[495-560nm](uW/m2)": A_zG, "G_Depth(m)": zG, "ALAN_B_Depth[400-500nm](uW/m2)": A_zB, "B_Depth(m)": zB,  "ALAN_Bb_Depth(uW/m2)" : A_zBb, "Kd_Red": KD[0], "Kd_Green": KD[1],"Kd_Blue": KD[2], "crit_depth_R(m)" : critical_depth_R[0], "crit_depth_G(m)" : critical_depth_G[0], "crit_depth_B(m)" : critical_depth_B[0], "crit_depth_Bb(m)" : critical_depth_Bb[0]} # nm range taken from (Davies et al., 2020) the source of the Hydrolight dataset
                 Tamir_comparison = pd.DataFrame({k:pd.Series(v) for k,v in d.items() })
                 Tamir_comparison.to_csv(f'Output/ALAN_TAMIR_COMPARISON_i' + Output_fname)
-            Aresult.to_csv(f'Output/ALAN_' + Output_fname)
+            Aresult.to_csv(f'Output/ALAN_' + Output_fname, index=False)
         sto = timeit.default_timer()
         print('Data output completed in', (sto-sta)/60, 'minutes')
         #plt.show()
