@@ -327,6 +327,8 @@ def main():
     alt = []; az = []; phase = []; I = []; lIBT = []; I_atmos = []; lunar_surface= []; lunar_datum = []
     A = []; aIBT = []; ALAN_surface = []; ALAN_datum = []
     TL = []; t = []; waterdepth = []; tide_h = []; ftide_h = []; Zc = []
+    # kd as a function of time
+    kd_red_t = []; kd_green_t = []; kd_blue_t = []; kd_BB_t = [];
     frames = []; Lun_frames = []; Sol_frames = []; A_frames = []
     date_record = []; day_summed =[]; fullmoon_mask = []
     datum_intensity_Lunar = []; datum_intensity_ALAN = []; datum_intensity_Solar = []
@@ -508,10 +510,7 @@ def main():
             KD = [kd_red, kd_green, kd_blue] # create a Kd array
             #KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
             KD_Bb = np.mean(KD) # Calculate Broadband Kd
-            #enablePrint()
-            #pdb.set_trace()
-            #blockPrint()
-
+            
         enablePrint()
         print(model_date)
         blockPrint()
@@ -748,6 +747,8 @@ def main():
                     waterdepth.append(depth_to_datum)
                     
                     #kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
+                    # need to update / append the value of Kd(s) for the output file
+                    kd_red_t.append(kd_red); kd_green_t.append(kd_green); kd_blue_t.append(kd_blue); kd_BB_t.append(KD_Bb)
 
 ########################################################
         # ATTENUATION OF INTENSITY TO SEABED                 
@@ -841,7 +842,8 @@ def main():
         zBb = []
         critical_depth_Bb = []
         KD = [Kd_R[i], Kd_G[i], Kd_B[i]] 
-        KD_Bb = scipy.integrate.simps(KD, dx=1)
+        #KD_Bb = scipy.integrate.simps(KD, dx=1) # Calculate Broadband Kd
+        KD_Bb = np.mean(KD) # Calculate Broadband Kd
         if args.ALAN:
             if args.threshold:
                 threshold_intensity = args.threshold
@@ -1012,7 +1014,7 @@ def main():
         Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
         datapath = os.getcwd() + "/Output/" + Output_fname # path of data file output
         sta = timeit.default_timer()
-        df0 = pd.DataFrame({'Location_Lat(degN)' : latitude_deg, 'Location_Lon(degE)' : longitude_deg, 'time_increment(hr)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_depth(m)' : ftide_h, 'date' : date_record, 'Jday(decimal)' : dec_day, 'Kd_Blue(1/m)' : kd_blue, 'Kd_Green(1/m)' : kd_green, 'Kd_Red(1/m)' : kd_red, 'Kd_Bb(1/m)' : KD_Bb})
+        df0 = pd.DataFrame({'Location_Lat(degN)' : latitude_deg, 'Location_Lon(degE)' : longitude_deg, 'time_increment(hr)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_depth(m)' : ftide_h, 'date' : date_record, 'Jday(decimal)' : dec_day, 'Kd_Blue(1/m)' : kd_blue_t, 'Kd_Green(1/m)' : kd_green_t, 'Kd_Red(1/m)' : kd_red_t, 'Kd_Bb(1/m)' : kd_BB_t})
         frames.append(df0)
         # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
         # change_output_name = input()
