@@ -2,7 +2,7 @@
 ## declare an array variable holding the locations
 
 declare -a locations=("Tokyo" "Eilat" "Plymouth_Dockyard" "Lagos" "NewYork" "LosAngeles" "BuenosAires" "Shanghai" "Mumbai")
-declare -a locations=("Plymouth_Dockyard")
+#declare -a locations=("Plymouth_Dockyard")
 
 # Datum fraction (e.g. 0.5 = 50%)
 DP=0.25
@@ -11,9 +11,9 @@ DP=0.25
 TI=0.25
 
 # Start date
-START="2020-01-31"
+START="2020-01-01"
 # End date
-END="2020-02-02"
+END="2020-12-31"
 
 ## loop through the locations array
 for location in "${locations[@]}"
