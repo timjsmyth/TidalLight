@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 ## declare an array variable holding the locations
 
-declare -a locations=("Tokyo" "Eilat" "Plymouth_Dockyard" "Lagos" "NewYork" "LosAngeles" "BuenosAires" "Shanghai" "Mumbai")
+declare -a locations=("Plymouth_Dockyard" "Tokyo" "Eilat" "Lagos" "NewYork" "LosAngeles" "BuenosAires" "Shanghai" "Mumbai")
 #declare -a locations=("Plymouth_Dockyard")
 
 # Datum fraction (e.g. 0.5 = 50%)
@@ -13,7 +13,7 @@ TI=0.25
 # Start date
 START="2020-01-01"
 # End date
-END="2020-12-31"
+END="2021-01-01"
 
 ## loop through the locations array
 for location in "${locations[@]}"

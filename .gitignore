@@ -4,3 +4,9 @@ Model/Output/*.png
 Model/Required/TideGauge/old/*.*
 Model/*.csv
 Notes/
+Model/Output/annual/*.*
+Model/Output/annual/*/*.*
+Model/Output/annual/V1/*.*
+Model/Output/old
+Model/Output/annual/analysis/*.*
+

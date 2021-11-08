@@ -975,7 +975,7 @@ def main():
 #############################################################
     location = geo_location
     skycondition = condition
-    figurepath = os.getcwd() + f"/Output/{location}_{date_start}-{date_end}_Datum_{datum_percentage}MST"
+    figurepath = os.getcwd() + f"/Output/{location}_{start_date}_{end_date}_Datum_{datum_percentage}MST"
     if args.plots:
         # Broadband.Broadband(dec_day, A, tide_h, waterdepth, night, sol, aIBT, datum, I, lIBT, phase, Io, IBT, location, skycondition)
         # Tamir_2017.figure_5(AIBT_zR, AIBT_zG, AIBT_zB, zR, zG, zB)
@@ -1003,15 +1003,15 @@ def main():
     ###############################################
     #                   Outputs 
     ###############################################
-    print("Output section still requires updating don't know what the new standard 'TidalLight' model output should be")
+    #print("Output section still requires updating don't know what the new standard 'TidalLight' model output should be")
     # pdb.set_trace()
-    Dosage = pd.concat([ALAN_datum_dosage_df, Lun_datum_dosage_df, Sol_datum_dosage_df], keys=["ALAN_(uW/m2)", "Lunar_(uW/m2)", "Solar_(uW/m2)"], axis=1)
-    Dosage.to_csv(f"Output/Dosage_{year}_{location}.csv")
+    #Dosage = pd.concat([ALAN_datum_dosage_df, Lun_datum_dosage_df, Sol_datum_dosage_df], keys=["ALAN_(uW/m2)", "Lunar_(uW/m2)", "Solar_(uW/m2)"], axis=1)
+    #Dosage.to_csv(f"Output/Dosage_{year}_{location}.csv")
     if args.output:
         directory = os.getcwd()+"/Output/"
         if not os.path.exists(directory):
             os.mkdir(directory)
-        Output_fname = f"{geo_location}_DATA_Day({tt_s}-{tt_e})_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
+        Output_fname = f"{geo_location}_{start_date}_{end_date}_Datum-{datum_percentage}MST.csv" # OLD DEPTH DESCRIPTION: Depth-{datum}m-above-max-low-tide.csv" # filename of data output
         datapath = os.getcwd() + "/Output/" + Output_fname # path of data file output
         sta = timeit.default_timer()
         df0 = pd.DataFrame({'Location_Lat(degN)' : latitude_deg, 'Location_Lon(degE)' : longitude_deg, 'time_increment(hr)' : t_incr, 'depth_to_datum(m)' : waterdepth, 'modelled_tidal_depth(m)' : ftide_h, 'date' : date_record, 'Jday(decimal)' : dec_day, 'Kd_Blue(1/m)' : kd_blue_t, 'Kd_Green(1/m)' : kd_green_t, 'Kd_Red(1/m)' : kd_red_t, 'Kd_Bb(1/m)' : kd_BB_t})
@@ -1061,10 +1061,11 @@ def main():
             for aa in range(len(col_names_SS)):
                 NAI_ASb.iloc[:,aa] = (AI_ASb.iloc[:,aa]/max(AI_ASb.iloc[:,aa]))
                 NAI_AS.iloc[:,aa] = (AI_AS.iloc[:,aa]/max(AI_AS.iloc[:,aa]))   
-            df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : ALAN_total, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
+            #df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : ALAN_total, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
+            df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : A, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
             #Aresult = pd.concat([df0, df3, NAI_AS, NAI_ASb, AI_AS, AI_ASb, AI_ASRes], keys= ['','ALAN', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
             Aresult = pd.concat([df0, df3, AI_AS, AI_ASb], axis=1)
-            Output_fname = f"{geo_location}_DATA_{sky_condition}_{tt_s}-{tt_e}_Datum-{datum_percentage}MST.csv" # filename of data output (MST = Mean Spring Tide)
+            Output_fname = f"{geo_location}_{sky_condition}_{start_date}_{end_date}_Datum-{datum_percentage}MST.csv" # filename of data output (MST = Mean Spring Tide)
             # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
             if args.station:
                 Output_fname = str(args.station) + "_" + Output_fname
