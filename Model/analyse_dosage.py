@@ -97,17 +97,16 @@ def main():
 
    #last_days_of month 
    mm = np.cumsum(mm)
-   #pdb.set_trace()
    for m in range(0,13):
       if (m == 12):
          # Final run through is total of year
-         print("Summing between days: ", mm[0],mm[12]-1)
-         mm_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[0]) & (df_solar_irradiances['Jday(decimal)'] <= mm[12]-1))
-         mm_twilight_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[0]) & (df_solar_irradiances['Jday(decimal)'] <= mm[12]-1) & (df_solar_irradiances['night(0)_day(1)'] > 0) & (df_solar_irradiances['night(0)_day(1)'] < 1.0))
+         print("Summing between days: ", mm[0],mm[12])
+         mm_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[0]) & (df_solar_irradiances['Jday(decimal)'] <= mm[12]))
+         mm_twilight_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[0]) & (df_solar_irradiances['Jday(decimal)'] <= mm[12]) & (df_solar_irradiances['night(0)_day(1)'] > 0) & (df_solar_irradiances['night(0)_day(1)'] < 1.0))
       else:
          print("Summing between days: ", mm[m],mm[m+1]-1)
-         mm_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[m]) & (df_solar_irradiances['Jday(decimal)'] <= mm[m+1]-1)) 
-         mm_twilight_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[m]) & (df_solar_irradiances['Jday(decimal)'] <= mm[m+1]-1) & (df_solar_irradiances['night(0)_day(1)'] > 0) & (df_solar_irradiances['night(0)_day(1)'] < 1.0))
+         mm_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[m]) & (df_solar_irradiances['Jday(decimal)'] <= mm[m+1])) 
+         mm_twilight_index = np.where((df_solar_irradiances['Jday(decimal)'] >= mm[m]) & (df_solar_irradiances['Jday(decimal)'] <= mm[m+1]) & (df_solar_irradiances['night(0)_day(1)'] > 0) & (df_solar_irradiances['night(0)_day(1)'] < 1.0))
       # Broadband
       monthly_solar_I_BB.append(np.sum(solar_I_BB[mm_index[0]]))
       monthly_lunar_I_BB.append(np.sum(lunar_I_BB[mm_index[0]]))
