@@ -605,7 +605,9 @@ def main():
                         if solar_day==0:
                             IO_SS = float(0)
                         elif (solar_day >= 0.5 and solar_day < 1.0):
-                            IO_SS = np.exp(twilight_df["Twilight_broadband(log(W/m2))"][ss]) #Twilight component
+                            # Bugfix: twilight_spitzchan data are in log base 10
+                            #IO_SS = np.exp(twilight_df["Twilight_broadband(log(W/m2))"][ss]) #Twilight component
+                            IO_SS = 10**(twilight_df["Twilight_broadband(log(W/m2))"][ss]) #Twilight component
                             if IO_SS > 15:
                                IO_SS=0
                         else:
@@ -619,7 +621,9 @@ def main():
                     if solar_day==0:
                         IO = float(0)
                     elif (solar_day >= 0.5 and solar_day < 1.0):
-                        IO = np.exp(twilight_df["Twilight_PAR(log(W/m2))"][0])
+                        # Bugfix: twilight_spitzchan data are in log base 10
+                        #IO = np.exp(twilight_df["Twilight_PAR(log(W/m2))"][0])
+                        IO = 10**(twilight_df["Twilight_PAR(log(W/m2))"][0])
                         if IO > 15:
                            IO = float(0)
                     else:

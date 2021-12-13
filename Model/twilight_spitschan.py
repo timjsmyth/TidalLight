@@ -53,7 +53,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
    if (solar_elevation >= np.min(elevation_angles) and solar_elevation <= np.max(elevation_angles)):
       print("Sun is below horizon and twilight spectrum can be determined")
       # determine which LUT elevation angles the spectrum lies between
-      index = np.where(np.float(solar_elevation) == elevation_angles)
+      index = np.where(np.float64(solar_elevation) == elevation_angles)
 
       # Need to interpolate between two angles within the LUT (integer values between 0 and -18)
       if not index[0] and np.float(solar_elevation) != 0:
@@ -84,6 +84,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          out_df['End_Wavelength(nm)'] = df['Wavelength(nm)'] + 0.5
          out_df['Twilight_spectrum(log(W/m2/nm))'] = actual_spectrum
          out_df['Elevation(degrees)'] = solar_elevation
+         #print(out_df) 
    
       # ii) broadband (400 - 700 nm)
       if spectral_group == "broadband":
@@ -96,6 +97,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          out_df['End_Wavelength(nm)'] = [np.max(wavelength)]
          out_df['Twilight_broadband(log(W/m2))'] = [broadband_integral]
          out_df['Elevation(degrees)'] = [solar_elevation]
+         #print(out_df) 
          
       # iii) Skye Meter wavelengths Blue (400 - 500); Green (495 - 560nm); Red (620 - 740)
       if spectral_group == "skye":
@@ -127,7 +129,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          out_df['Twilight_broadband(log(W/m2))'] = [r_integral,b_integral,g_integral]
          out_df['Twilight_PAR(log(W/m2))'] = broadband_integral
          out_df['Elevation(degrees)'] = solar_elevation
-         print(out_df) 
+         #print(out_df) 
    return out_df
 
 if __name__=='__main__':
@@ -154,12 +156,26 @@ if __name__=='__main__':
    parser.add_argument("-o", "--ofile", type=str, default='', help="--ofile <Output Filename>")
 
    args = parser.parse_args()
+   print(args)
    if ((args.solar_elevation <= 0) and (args.solar_elevation >= -18.0)):
          solar_elevation = args.solar_elevation
    else:
       print("Solar elevation must be between 0 and -18 degrees")
-      # sys.exit(0)
-   main(args.solar_elevation, args.atm_group, args.spec_group)
+      sys.exit(0)
+
+   if args.urban:
+      atmosphere = "urban"
+   if args.rural:
+      atmosphere = "rural"
+   if args.hyperspectral:
+      spectrum = "hyperspectral"
+   if args.skye:
+      spectrum = "skye"
+   if args.broadband:
+      spectrum = "broadband"
+      
+   #main(args.solar_elevation, args.atm_group, args.spec_group)
+   out_df = main(args.solar_elevation, atmosphere, spectrum)
    # Write out dataframe as a csv
    if args.ofile:
       filename = args.ofile
