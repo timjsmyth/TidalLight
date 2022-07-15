@@ -162,7 +162,7 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
     ax[0].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[0].set_yscale('symlog')
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
-    ax[0].set_title('Lunar Irradiance at sea level')
+    ax[0].set_title('Surface Lunar Irradiance')
 
     ax0 = ax[0].twinx()
     ax0.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
@@ -198,7 +198,7 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
         foundmaxLSb.append(maximumLSb)
         ax[1].plot(dec_day, LunI_LSb.iloc[:,i], label=label, color=colour, alpha=a)
     # ax[1].plot(dec_day, lIBT, label='Lunar Irradiance at seabed', color='lightsalmon')
-    ax[1].set_title('Lunar Irradiance at datum ')
+    ax[1].set_title('Intertial Lunar Irradiance')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[1].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[1].set_yscale('symlog')

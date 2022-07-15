@@ -149,7 +149,7 @@ def Sol3d(dec_day, SolSpec, SolI_SSb, SolI_SSRes, SolI_SS, datum, datum_percenta
 def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol, IBT, datum, datum_percentage,location, figurepath):
     fig, ax = plt.subplots(4, figsize=(13.5,7.34))
     # fig.suptitle(f'Chlorophyll = {Chlorophyll}, fCDOM = {fCDOM}, backscatter = {backscatter}')
-    fig.suptitle(f'Solar (Spectral) - {location}\n')
+    fig.suptitle(f'{location}\n')
 
     # SOLAR INT SEALEVEL
     ax[0].plot(dec_day, Io, color='black')
@@ -180,7 +180,7 @@ def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol,
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
     # ax[0].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[0].set_ylabel('Irradiance\n (W m$^{-2}$)')
-    ax[0].set_title('Solar Irradiance at sea level')
+    ax[0].set_title('Surface Solar Irradiance')
 ##            ax[0].set_xlim([startdate, enddate])
     ax0.set_ylim([(-max(Io)/10), (max(Io)+max(Io)/10)])
     
@@ -208,7 +208,7 @@ def SolOverlay(dec_day, SolSpec, SolI_SS, SolI_SSb, Io, tide_h, waterdepth, sol,
             label=None
         ax[1].plot(dec_day, SolI_SSb.iloc[:,i], label=label, color=colour, alpha=a)
     #ax[1].legend()
-    ax[1].set_title('Solar Irradiance seabed')
+    ax[1].set_title('Intertidal Solar Irradiance')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[1].set_ylabel('Irradiance\n (W m$^{-2}$)')
     ax[1].set_yscale('symlog')

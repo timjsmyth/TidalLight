@@ -263,6 +263,19 @@ def main():
     elif geo_location == 'Mumbai':
         latitude_deg = 19.0760; longitude_deg = 72.8777
         Tide_fname = "TideMumbai_L1.csv"
+    elif geo_location == 'Site_85':
+        latitude_deg = 32.167; longitude_deg = 130.03
+        Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
+    elif geo_location == 'Site_78':
+        latitude_deg = -5.00; longitude_deg = 119.00
+        Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
+    elif geo_location == 'Site_183':
+        latitude_deg = 29.50; longitude_deg = 34.92
+        Tide_fname = "TideEilatGulf_L1.csv"
+    elif geo_location == 'Site_80':
+        latitude_deg = -5.06; longitude_deg = 119.329
+        Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
+
     #elif geo_location == 'GEOTAG':
     #    latitude_deg = LATLATLAT; longitude_deg = LONLONLON
     #    Tide_fname = "TideGEOTAG_L1.csv"
@@ -459,6 +472,7 @@ def main():
             datum = round((min(TL) + (max(TL) - min(TL))*datum_percentage),2)
             
         print('     finished tidal model...')
+        #pdb.set_trace()
         
     #                                         TidalLight - MODEL BREAKDOWN
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

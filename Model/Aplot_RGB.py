@@ -139,7 +139,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
     # ax[0].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[0].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
-    ax[0].set_title('ALAN Irradiance at sea level')
+    ax[0].set_title('Surface ALAN Irradiance')
     ax0.set_ylim([(-max(A)/10), (max(A)+max(A)/10)])
     
 
@@ -165,7 +165,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
             a = 0.3
         ax[1].plot(dec_day, AI_ASb.iloc[:,i], label=label, color=colour, alpha=a)
     #ax[1].legend()
-    ax[1].set_title('ALAN Irradiance at datum')
+    ax[1].set_title('Intertidal ALAN Irradiance')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[1].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[1].set_yscale('symlog')

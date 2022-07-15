@@ -9,4 +9,7 @@ Model/Output/annual/*/*.*
 Model/Output/annual/V1/*.*
 Model/Output/old
 Model/Output/annual/analysis/*.*
+Model/Output/*.zip
+Model/Output/L4buoy_tides.txt
+
 
