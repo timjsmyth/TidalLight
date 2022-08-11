@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 ## declare an array variable holding the locations
 declare -a locations=("Plymouth_L4")
+slackofile=/tmp/L4_buoy_slack_today_FRENCH.txt
 
 # Issues with the Profiler only operating on the Devil's time
 # The following assumes that the UK and France shift to Daylight Savings simultaneously
@@ -31,6 +32,9 @@ START=`date --date='-1 day' +%Y-%m-%d`
 # End date
 END=`date --date='7 day' +%Y-%m-%d`
 
+#START="2023-01-01"
+#END="2023-06-30"
+
 ## loop through the locations array
 for location in "${locations[@]}"
 do
@@ -44,19 +48,28 @@ cat Output/L4buoy_tides.txt | sed -e 's/\"//g' > /tmp/L4buoy_tides.txt
 
 # TODAY
 echo "======================="
-echo "Today's times of Hi/Lo water @Devonport"
+echo "Today's times of Hi/Lo water @Devonport (UTC)"
 TODAY=`date +%Y-%m-%d`
-grep $TODAY /tmp/L4buoy_tides.txt
-grep $TODAY /tmp/L4buoy_tides.txt > /tmp/L4buoy_tides_today.txt
+grep $TODAY /tmp/L4buoy_tides.txt | awk '{print $1,$2,$3,$4}'
+grep $TODAY /tmp/L4buoy_tides.txt > /tmp/Devonport_tides_today.txt
 echo "======================="
 
-echo "Offset in French time from God's own time(UTC): $FROFF"
+# Slack water
+echo "Today's times of predicted slack water @L4 (UTC)"
+grep $TODAY /tmp/L4buoy_tides.txt | awk '{print $5,$6}'
+grep $TODAY /tmp/L4buoy_tides.txt | awk '{print $5,$6}' > /tmp/L4buoy_slack_today.txt
+echo "======================="
+
+echo "Slack offset in French time from God's own time(UTC): $FROFF"
+/bin/rm -rf $slackofile
 while read entry
 do
    DATETIME=`echo "$entry" | awk '{print $1,$2}'`
    FRENCHTIME=`date -d"$DATETIME $FROFF hour" +"%Y-%m-%d %H:%M:%S"`
    echo $FRENCHTIME
-done < /tmp/L4buoy_tides_today.txt
+   echo $FRENCHTIME >> $slackofile
+done < /tmp/L4buoy_slack_today.txt
+echo "Written to $slackofile"
 
 exit 0
 

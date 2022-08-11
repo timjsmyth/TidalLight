@@ -23,7 +23,6 @@ from astroplan import moon
 import timeit
 import calendar
 
-
 import subprocess
 from dateutil import parser
 import SpectralSplit
@@ -33,6 +32,34 @@ import sys
 import pdb
 import warnings
 warnings.simplefilter('ignore', np.RankWarning)
+
+# Empirical function for deriving L4 offsets from Devonport
+# Derived by Reg Uncles
+def tidal_offset(tide_heights, tide_time):
+
+   slack_times = np.array([], dtype=object)
+   counter = 0
+   for HW in tide_heights:
+      # All Tides with No Wind
+      # Slack before HW Devonport (hours) = 3.569 - 0.67909*(HW) + 0.0876*(HW)^2
+      slack_time_offset_before = 3.569 - 0.67909*HW + 0.0876*HW**2
+      slack_time = str(datetime.datetime.strptime(str(tide_time[counter]), '%Y-%m-%dT%H:%M:%S.%f000') - datetime.timedelta(hours=-slack_time_offset_before))
+      slack_times = np.append(slack_times,slack_time[:-7])
+      #slack_offsets = np.append(slack_offsets, slack_time_offset_before)
+      # Slack after HW Devonport (hours) = 6.862 - 1.1*(HW) + 0.08264*(HW)^2
+      slack_time_offset_after = 6.862 - 1.1*HW + 0.08264*HW**2
+      slack_time = str(datetime.datetime.strptime(str(tide_time[counter]), '%Y-%m-%dT%H:%M:%S.%f000') - datetime.timedelta(hours=+slack_time_offset_after))
+      slack_times = np.append(slack_times,slack_time[:-7])
+      #slack_offsets = np.append(slack_offsets, slack_time_offset_after)
+      counter += 1
+
+   return slack_times
+
+def format_time(time_array):
+   formatted_time_array = np.array([])
+   for time in time_array:
+      formatted_time_array = time.strftime('%Y-%m-%d %H:%M:%S')
+   return formatted_time_array
 
 def main():
 
@@ -194,6 +221,18 @@ def main():
         df_out['Time(UTC)'] = sorted_tide_time
         df_out['Height(m)'] = sorted_tide_heights
         df_out['Hi/Lo'] = sorted_tide_labels
+        
+        # Calculate the tidal offset at L4
+        # Only want to pass through the high water times here
+        slack_times = tidal_offset(sorted_tide_heights[sorted_tide_labels == 'High'], 
+                                     sorted_tide_time[sorted_tide_labels == 'High'])
+        
+        # issue if there are more slack waters in the given period than Hi / Lo tides
+        sorted_slack_times = np.sort(slack_times)
+        if (len(sorted_slack_times) > len(sorted_tide_time)):
+           sorted_slack_times = sorted_slack_times[:-1]
+         
+        df_out['Slack(UTC)'] = pd.to_datetime(sorted_slack_times)
         
         if args.output:
            df_out.to_csv('Output/L4buoy_tides.txt', sep=' ', index=False, float_format='%.2f')
