@@ -232,7 +232,7 @@ def main():
         if (len(sorted_slack_times) > len(sorted_tide_time)):
            sorted_slack_times = sorted_slack_times[:-1]
          
-        df_out['Slack(UTC)'] = pd.to_datetime(sorted_slack_times)
+        df_out['Slack(UTC)'] = pd.to_datetime(pd.Series(sorted_slack_times))
         
         if args.output:
            df_out.to_csv('Output/L4buoy_tides.txt', sep=' ', index=False, float_format='%.2f')
