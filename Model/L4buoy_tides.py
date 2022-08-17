@@ -31,6 +31,9 @@ import os
 import sys
 import pdb
 import warnings
+from sklearn.utils import Bunch
+from sklearn import datasets
+import pickle
 warnings.simplefilter('ignore', np.RankWarning)
 
 # Empirical function for deriving L4 offsets from Devonport
@@ -60,7 +63,7 @@ def format_time(time_array):
    for time in time_array:
       formatted_time_array = time.strftime('%Y-%m-%d %H:%M:%S')
    return formatted_time_array
-
+    
 def main():
 
 ##  Create Parser instructions
@@ -169,13 +172,24 @@ def main():
 
         # Calculate the tidal coefficients from tide gauge data 
         tide = np.array(TL, dtype=float)
-        c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
-                        nodal=False,
-                        trend=False,
-                        method='ols',
-                        conf_int='linear',
-                        Rayleigh_min=0.95)
-
+        
+        # Check to see if the harmonics file exists
+        L4_harmonics_file_exists = os.path.exists('L4_tidal_harmonics.pkl')
+        if L4_harmonics_file_exists:
+           print("L4 harmonics file exists as pkl")
+           with open('L4_tidal_harmonics.pkl', 'rb') as bunch:
+              c = pickle.load(bunch)        
+        else:
+           print("Calculate L4 harmonics and save as pkl")
+           c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
+                           nodal=False,
+                           trend=False,
+                           method='ols',
+                           conf_int='linear',
+                           Rayleigh_min=0.95)
+        
+           with open('L4_tidal_harmonics.pkl', 'wb') as bunch:
+              pickle.dump(c, bunch, protocol=pickle.HIGHEST_PROTOCOL)
 
         # 1. Generate list of date & time for time period of interest at 1 hour resolution
         dts = (pd.DataFrame(columns=['NULL'],index=pd.date_range(start_date, end_date,freq='1T')).between_time('00:00','23:59').index.strftime('%Y-%m-%d %H:%M:%S').tolist())

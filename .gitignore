@@ -11,5 +11,6 @@ Model/Output/old
 Model/Output/annual/analysis/*.*
 Model/Output/*.zip
 Model/Output/L4buoy_tides.txt
+Model/L4_tidal_harmonics.pkl
 
 
