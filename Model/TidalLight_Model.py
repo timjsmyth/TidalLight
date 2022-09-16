@@ -49,6 +49,8 @@ import sys
 import pdb
 import warnings
 warnings.simplefilter('ignore', np.RankWarning)
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import spectres
 
 # Disable
 def blockPrint():
@@ -189,6 +191,8 @@ def main():
     fname_Lun = path_name + 'Moon_spectra.csv'
     fname_ALAN = path_name + 'Lightspectra.csv'
     fname_gcirrad = path_name + 'gcirrad.dat'
+    # Table 2 from Velikodsky et al., (2011) New Earth-based absolute photometry of the Moon, Icarus, 214, 30 - 45
+    fname_lunar_albedo = path_name + 'lunar_albedo.dat' 
     # enablePrint()
     
 
@@ -217,11 +221,28 @@ def main():
     Isc = SolBB # Replaced above approximation with the integration from Solarspectra.csv 
     # k_atmos = 0.01 # Value from the Roberts paper
     # k_atmos = 0.21 # Value from Jeff Conrad 
+    # Atmospheric transmission
     df_trans_atmos = pd.read_csv(fname_gcirrad, delim_whitespace=True)
     df_k_atmos = SpectralSplit.k_spectral_split('Wavelength','Trans',df_trans_atmos)
     k_atmos_bb = df_k_atmos['Broadband'].to_numpy()[0]
     df_k_atmos_spec = df_k_atmos[['Red','Green','Blue']]
     
+    # Lunar spectral albedo
+    df_spectral_lunar_albedo = pd.read_csv(fname_lunar_albedo, delim_whitespace=True)
+    df_albedo_lunar = SpectralSplit.lunar_albedo_spectral_split('Wavelength','AverageMoonAlbedo',df_spectral_lunar_albedo)
+
+    # interpolate the lunar spectral albedo onto the atmospheric transmission wavelengths
+    gcirrad_wavs = df_trans_atmos['Wavelength'].to_numpy()
+    lunar_albedo_wavs = df_spectral_lunar_albedo['Wavelength'].to_numpy()
+    spec_albedo = df_spectral_lunar_albedo['AverageMoonAlbedo'].to_numpy()
+    lunar_UV_albedo_fill = 0.0728 # for wavelengths shorter than 350 nm (305 - 350 nm)
+    lunar_albedo_gcirrad = spectres.spectres(gcirrad_wavs, lunar_albedo_wavs, spec_albedo, fill=lunar_UV_albedo_fill, verbose=False)    
+    # add column into the gcirrad dataframe
+    df_trans_atmos['LunarAlbedo'] = lunar_albedo_gcirrad
+
+    # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
+    lun_sva = 0.000064692/np.pi 
+
     ###################################### Select location ####################################################
     # Locations
     ##Tokyo: 35.6762, 139.6503
@@ -472,7 +493,6 @@ def main():
             datum = round((min(TL) + (max(TL) - min(TL))*datum_percentage),2)
             
         print('     finished tidal model...')
-        #pdb.set_trace()
         
     #                                         TidalLight - MODEL BREAKDOWN
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -593,10 +613,9 @@ def main():
 ##                   Calculate variable using Pysolar
                     #airmass = get_air_mass_ratio(altitude_deg)  ###### NOTE ####### diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
                     if (altitude_deg > 0.):
-                       LUNFACTOR = 1.0 # This is a scaling factor if the moon is being calculated.  Default is 1.0 (i.e. the solar component)
                        airmass = get_air_mass_kasten_young(altitude_deg)
                        # Run a more sophisticated atmospheric model
-                       df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, altitude_deg, Ecc, LUNFACTOR)
+                       df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, altitude_deg, Ecc)
                        # Surface values of the SolSpec
                        SolSpecSurface = SpectralSplit.spectral_split('Wavelength','Ed',df_dir_dif)
                        PARSurface = SolSpecSurface[['PAR']].to_numpy()[0]
@@ -631,6 +650,9 @@ def main():
 
                     SolI_SS_TOA = SolI_SS_TOA.append(pd.Series(STOA, index=SolI_SS_TOA.columns),ignore_index=True)
                     SolI_SS = SolI_SS.append(pd.Series(SSurface, index=SolI_SS.columns),ignore_index=True)  
+                    ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                    #SolI_SS_TOA = pd.concat((pd.DataFrame(STOA, index=SolI_SS_TOA.columns).T, SolI_SS_TOA))
+                    #SolI_SS = pd.concat((pd.DataFrame(SSurface, index=SolI_SS.columns).T, SolI_SS))  
                     
                     if solar_day==0:
                         IO = float(0)
@@ -661,6 +683,8 @@ def main():
                         ASurface = np.append(ASurface, Aint)
                     
                     AI_AS = AI_AS.append(pd.Series(ASurface, index=AI_AS.columns),ignore_index=True)  
+                    ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                    #AI_AS = pd.concat((pd.DataFrame(ASurface, index=AI_AS.columns).T, AI_AS)) 
                     #if solar_day==1:
                     # Only "switch on" ALAN after "Lighting up time" - which is end of Civic Twilight
                     if solar_day>=0.75:
@@ -675,7 +699,9 @@ def main():
                     # Lunar albedo: 
                     # Lane & Irvine (1973) ~12% for full moon DOI: 10.1086/111414
                     # Buratti et al., (1996) ~16% (zero phase value)
-                    Lunar_albedo = 0.16
+                    # Lunar_albedo = 0.16
+                    # Use spectral albedo from Table 2 from Velikodsky et al., (2011)
+                    # For broadband using df_albedo_lunar['Broadband'] - which is approx 12%
                     dt = Time(date) # Time within model
                     EarthMoon = get_moon(dt, location) # Relative positioning              
                     moon_icrs = EarthMoon.transform_to('icrs') # Relative Ephemeris calculation    
@@ -684,22 +710,19 @@ def main():
                     az_ = float(Angle(moonaltaz.az).degree) # Lunar Azimuth                     
                     Phase = float(moon.moon_illumination(dt)) # Lunar Phase 
                     Phase_lb = lumme_bowell(moon.moon_phase_angle(dt).value) # Lunar Phase function - Lumme-Bowell
-                    #albedo_phased = Lunar_albedo*Phase 
-                    albedo_phased = Lunar_albedo*Phase_lb 
-                    # LUNAR REFLECTION CALC. 
-                    lun_sva = 0.000064692/np.pi # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
-                    LUNFACTOR = lun_sva*albedo_phased
+                    albedo_phased = df_albedo_lunar['Broadband'].to_numpy()[0]*Phase_lb
                     # Iatmos in place of Isc - to correct for eccentricity of Earth (moon) orbit 
-                    #Lunar_refl = Iatmos*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
+                    # Broadband top of atmosphere lunar 
                     Lunar_refl = PARTOA*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
-                    #airmass = get_air_mass_ratio(alt_) ########## diffusivity through airmass is wavelength specific - currently using broadband attenuation for each wvlnth
                     airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:
                         Iol = 0
                     elif altitude_deg>0:
                         Iol = 0
                     else:
-                        df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, alt_, Ecc, LUNFACTOR)
+                        # Use the Gregg and Carder atmospheric model, with correction for the lunar spectral albedo (lunar=True)
+                        # and the lunar phase (multiplied by the lunar solid view angle)
+                        df_dir_dif = gcirrad.dir_dif_irradiance(df_trans_atmos, alt_, Ecc, lunar=True, phase_sva=Phase_lb*lun_sva)
                         LunSpecSurface = SpectralSplit.spectral_split('Wavelength','Ed',df_dir_dif)
                         LunPARSurface = LunSpecSurface[['PAR']].to_numpy()[0]
                         LunSpecSurface = LunSpecSurface[['Red','Green','Blue']]
@@ -714,6 +737,7 @@ def main():
                     LSurface = np.array([])
                     LAtmos = np.array([])
                     #for ll in range(len(LunSpec.columns)):
+                    #pdb.set_trace()
                     for ll in range(len(SolSpec.columns)):
                     #for ll in range(len(LunSpecSurface.columns)):
                         #Lunar_refl_LS = (LunSpec.iloc[:,ll]) # spectral data is a measurement which has been extrapolated to top of atmosphere. 
@@ -737,6 +761,9 @@ def main():
                     
                     LunI_LS = LunI_LS.append(pd.Series(LSurface, index=LunI_LS.columns),ignore_index=True)
                     LunI_LS_atm = LunI_LS_atm.append(pd.Series(LAtmos, index=LunI_LS_atm.columns),ignore_index=True)
+                    ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                    #LunI_LS = pd.concat((pd.DataFrame(LSurface, index=LunI_LS.columns).T, LunI_LS))
+                    #LunI_LS_atm = pd.concat((pd.DataFrame(LAtmos, index=LunI_LS_atm.columns).T, LunI_LS_atm))
                     
                     #if (alt_ > 5.0 and altitude_deg < 0):
                     #   enablePrint()
@@ -792,6 +819,9 @@ def main():
                             SSRes_array = np.append(SSRes_array, (SSurface[ss]-iBT_SS))
                         SolI_SSb = SolI_SSb.append(pd.Series(SS_array, index=SolI_SSb.columns), ignore_index=True)
                         SolI_SSRes = SolI_SSRes.append(pd.Series(SSRes_array, index=SolI_SSRes.columns), ignore_index=True)
+                        ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                        #SolI_SSb = pd.concat((pd.DataFrame(SS_array, index=SolI_SSb.columns).T, SolI_SSb))
+                        #SolI_SSRes = pd.concat((pd.DataFrame(SSRes_array, index=SolI_SSRes.columns).T, SolI_SSRes))
 
 ########################################################  
                           
@@ -814,6 +844,9 @@ def main():
                             LRes_array = np.append(LRes_array, (LSurface[ll]-LIBT_LS))
                         LunI_LSb = LunI_LSb.append(pd.Series(LSb_array, index=LunI_LSb.columns), ignore_index=True)
                         LunI_LSRes = LunI_LSRes.append(pd.Series(LRes_array, index=LunI_LSRes.columns), ignore_index=True)
+                        ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                        #LunI_LSb = pd.concat((pd.DataFrame(LSb_array, index=LunI_LSb.columns).T, LunI_LSb))
+                        #LunI_LSRes = pd.concat((pd.DataFrame(LRes_array, index=LunI_LSRes.columns).T, LunI_LSRes))
                         
 
 ########################################################               
@@ -838,6 +871,9 @@ def main():
                             ARes_array = np.append(ARes_array, (ASurface[aa]-AIBT_AS))
                         AI_ASb = AI_ASb.append(pd.Series(ASb_array, index=AI_ASb.columns), ignore_index=True)
                         AI_ASRes = AI_ASRes.append(pd.Series(ARes_array, index=AI_ASRes.columns), ignore_index=True)
+                        ## Need to introduce pd.concat in future, but this particular coding currently not producing expected result
+                        #AI_ASb = pd.concat((pd.DataFrame(ASb_array, index=AI_ASb.columns).T, AI_ASb))
+                        #AI_ASRes = pd.concat((pd.DataFrame(ARes_array, index=AI_ASRes.columns).T, AI_ASRes))
 ########################################################
 #             END TidalLight MODEL LOOP               
 ######################################################## 
@@ -1055,7 +1091,7 @@ def main():
                 NSolI_SSb.iloc[:,ss] = (SolI_SSb.iloc[:,ss]/max(SolI_SSb.iloc[:,ss]))
             #Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], keys =['','Solar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
             #Sresult = pd.concat([df0, df1, NSolI_SS, NSolI_SSb, SolI_SS, SolI_SSb, SolI_SSRes], axis=1)
-            Sresult = pd.concat([df0, df1, SolI_SS, SolI_SSb], axis=1)
+            Sresult = pd.concat([df0, df1, SolI_SS.reset_index(drop=True), SolI_SSb.reset_index(drop=True)], axis=1)
             Sresult.to_csv('Output/Solar_' + Output_fname, index=False)
             
         if args.lunar:
@@ -1067,7 +1103,7 @@ def main():
                 NLunI_LS.iloc[:,ll] = (LunI_LS.iloc[:,ll]/max(LunI_LS.iloc[:,ll]))
             df2 = pd.DataFrame({'Lunar_Alt (deg)' : alt, 'Lunar_Az (deg)': az, 'phase' : phase, 'I_TOA(uW/m2)' : I_atmos, 'I_BB(uW/m2)': I, 'I_BB_datum(uW/m2)' : lIBT})
             #Lresult = pd.concat([df0, df2, NLunI_LS, NLunI_LSb, LunI_LS, LunI_LSb, LunI_LSRes, ], keys= ['', 'Lunar position', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
-            Lresult = pd.concat([df0, df2, LunI_LS, LunI_LSb], axis=1)
+            Lresult = pd.concat([df0, df2, LunI_LS.reset_index(drop=True), LunI_LSb.reset_index(drop=True)], axis=1)
             # if change_output_name == "Y":
             #     Output_fname = identifier + Output_fname
             Lresult.to_csv('Output/Lunar_' + Output_fname, index=False)
@@ -1082,7 +1118,7 @@ def main():
             #df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : ALAN_total, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
             df3 = pd.DataFrame({'night(0)_day(1)' : sol, 'sky_condition': condition, 'Falchi_ALAN(mCd/m^2)': ALAN_mCd, 'ALAN_BB(uW/m^2)' : A, 'ALAN_BB_datum(uW/m^2)': aIBT}) 
             #Aresult = pd.concat([df0, df3, NAI_AS, NAI_ASb, AI_AS, AI_ASb, AI_ASRes], keys= ['','ALAN', 'Surface Normalised', 'Seabed Normalised', 'Surface', 'Seabed', 'Residuals'], axis=1)
-            Aresult = pd.concat([df0, df3, AI_AS, AI_ASb], axis=1)
+            Aresult = pd.concat([df0, df3, AI_AS.reset_index(drop=True), AI_ASb.reset_index(drop=True)], axis=1)
             Output_fname = f"{geo_location}_{sky_condition}_{start_date}_{end_date}_Datum-{datum_percentage}MST.csv" # filename of data output (MST = Mean Spring Tide)
             # print("THIS IS A QUESTION!!\n Do you want to add additional detail to output database and ouptut a database of the critical depths?\nY/n?")
             if args.station:

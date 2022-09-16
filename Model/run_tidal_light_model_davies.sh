@@ -27,6 +27,7 @@ do
    /bin/python3 TidalLight_Model.py -s -A 2 -l -t -T $TI -dp $DP -o -loc $location -start $START -end $END
 done
 
+
 # Start date
 START="2020-09-01"
 # End date

@@ -20,7 +20,8 @@ def TOA_irradiance(df_gcirrad, Ecc):
 #   Model for atmospheric transmittance of solar irradiance through
 #   a maritime atmosphere.  Computes direct and diffuse separately.
 #   Includes water vapor and oxygen absorption.
-def dir_dif_irradiance(df_gcirrad, altitude_deg, Ecc, lunfactor):
+#   Addition of lunar component
+def dir_dif_irradiance(df_gcirrad, altitude_deg, Ecc, lunar=False, phase_sva=1.0):
     theta = 90. - altitude_deg # zenith angle in degrees
 
     p0 = 1013.25 # standard pressure in mb
@@ -28,7 +29,7 @@ def dir_dif_irradiance(df_gcirrad, altitude_deg, Ecc, lunfactor):
     to3 = 300.   # Ozone concentration (Dobson Units)
     sco3 = to3*1.0e-3
     wv = 1.5     # precipitable water (water vapor) in cm
-        
+    
 #   Compute atmospheric path lengths (air mass); pressure-corrected
     cosunz = np.cos(np.radians(theta))
 #   Kasten and Young 1989.
@@ -59,11 +60,18 @@ def dir_dif_irradiance(df_gcirrad, altitude_deg, Ecc, lunfactor):
 #  Compute spectral irradiance
     lam = df_gcirrad['Wavelength'].to_numpy()
     Hobar = df_gcirrad['F0'].to_numpy()
-    Fobar = Hobar*10.0   #convert to W/m2/nm
-    Fo = Fobar*Ecc*lunfactor
     oza = df_gcirrad['a_oz'].to_numpy()
     ag = df_gcirrad['a_ox'].to_numpy()
     aw = df_gcirrad['a_w'].to_numpy()
+    lunar_albedo = df_gcirrad['LunarAlbedo'].to_numpy()
+    
+    Fobar = Hobar*10.0   #convert to W/m2/nm
+    #Fo = Fobar*Ecc*lunfactor
+    if (lunar):
+       Fo = Fobar*Ecc*lunar_albedo*phase_sva
+    else:
+       Fo = Fobar*Ecc
+    
     Ed = np.zeros(len(lam))
     Edir = np.zeros(len(lam))
     Edif = np.zeros(len(lam))

@@ -287,6 +287,34 @@ def k_spectral_split(wavelength_col, trans_col, df):
 
     return dataframe
 
+# Determine the spectral lunar albedo in predefined bands
+def lunar_albedo_spectral_split(wavelength_col, albedo_col, df):
+    # Thresholds used in the Davies et al, 2020 paper " Biologically active ALAN at seafloor"
+    BB_df = df[df[wavelength_col].between(400,700)]
+    BBa = BB_df['AverageMoonAlbedo']
+
+    B_df = df[df[wavelength_col].between(400,500)]
+    Ba = B_df['AverageMoonAlbedo']
+
+    G_df = df[df[wavelength_col].between(495,560)]
+    Ga = G_df['AverageMoonAlbedo']
+    
+    R_df = df[df[wavelength_col].between(620,740)]
+    Ra = R_df['AverageMoonAlbedo']
+
+    lunar_albedo_bb = np.mean(BBa)
+    lunar_albedo_b = np.mean(Ba)
+    lunar_albedo_g = np.mean(Ga)
+    lunar_albedo_r = np.mean(Ra)
+
+    columns = ['Broadband', 'Red', 'Green', 'Blue']
+    data = {'Broadband': [lunar_albedo_bb], 'Red': [lunar_albedo_r], 'Green': [lunar_albedo_g], 'Blue': [lunar_albedo_b]}
+    dataframe = pd.DataFrame(data, columns=columns)
+
+    return dataframe
+
+
+
 def spectral_split(wavelength_col, intensity_col, df):
     
     # ALAN dataset records -ve values of intensity when wavelength < 400nm
