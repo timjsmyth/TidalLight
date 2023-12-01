@@ -351,11 +351,11 @@ def spectral_split(wavelength_col, intensity_col, df):
     RedLight = (scipy.integrate.simps(Ri,Rx, dx=0.5))
     dataframe = spec_frame(PARLight, RedLight, GreenLight, BlueLight)
     # pdb.set_trace()
-    print('Irr. (W/m^2), '
-          'Blue:', BlueLight,
-          'Green:', GreenLight,
-          'Red: ', RedLight,
-          'PAR(400 - 700nm): ', PARLight)
+    #print('Irr. (W/m^2), '
+    #      'Blue:', BlueLight,
+    #      'Green:', GreenLight,
+    #      'Red: ', RedLight,
+    #      'PAR(400 - 700nm): ', PARLight)
     return dataframe
 
 ##########################################################################################

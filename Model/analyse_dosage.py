@@ -313,7 +313,7 @@ def dosage_opf(location):
 
 def dosage_seasons(position):
 
-   # create empty matrices for DJF, MAM, JJA, SON for Twilight, Lunar, ALAN
+   # create empty matrices for MEAN DJF, MAM, JJA, SON for Twilight, Lunar, ALAN
    DJF_Twilight = np.array([])
    DJF_Lunar = np.array([])
    DJF_ALAN = np.array([])
@@ -329,6 +329,23 @@ def dosage_seasons(position):
    SON_Twilight = np.array([])
    SON_Lunar = np.array([])
    SON_ALAN = np.array([])
+
+   # create empty matrices for std dev for DJF, MAM, JJA, SON for Twilight, Lunar, ALAN 
+   DJF_Twilight_std = np.array([])
+   DJF_Lunar_std = np.array([])
+   DJF_ALAN_std = np.array([])
+   
+   MAM_Twilight_std = np.array([])
+   MAM_Lunar_std = np.array([])
+   MAM_ALAN_std = np.array([])
+   
+   JJA_Twilight_std = np.array([])
+   JJA_Lunar_std = np.array([])
+   JJA_ALAN_std = np.array([])
+
+   SON_Twilight_std = np.array([])
+   SON_Lunar_std = np.array([])
+   SON_ALAN_std = np.array([])
 
    loc_str = []
    short_loc_str = []
@@ -418,6 +435,7 @@ def dosage_seasons(position):
       SON_index = np.where((smonth == 'Sep') | (smonth == 'Oct') | (smonth == 'Nov'))
 
       if position == "intertidal":
+         # mean
          DJF_Twilight = np.append(DJF_Twilight,np.mean(monthly_twilight_I_BB_datum[DJF_index]))
          DJF_Lunar = np.append(DJF_Lunar,np.mean(monthly_lunar_I_BB_datum[DJF_index]))
          DJF_ALAN = np.append(DJF_ALAN,np.mean(monthly_ALAN_I_BB_datum[DJF_index]))
@@ -433,8 +451,26 @@ def dosage_seasons(position):
          SON_Twilight = np.append(SON_Twilight,np.mean(monthly_twilight_I_BB_datum[SON_index]))
          SON_Lunar = np.append(SON_Lunar,np.mean(monthly_lunar_I_BB_datum[SON_index]))
          SON_ALAN = np.append(SON_ALAN,np.mean(monthly_ALAN_I_BB_datum[SON_index]))
+         
+         #std dev
+         DJF_Twilight_std = np.append(DJF_Twilight_std,np.std(monthly_twilight_I_BB_datum[DJF_index]))
+         DJF_Lunar_std = np.append(DJF_Lunar_std,np.std(monthly_lunar_I_BB_datum[DJF_index]))
+         DJF_ALAN_std = np.append(DJF_ALAN_std,np.std(monthly_ALAN_I_BB_datum[DJF_index]))
+   
+         MAM_Twilight_std = np.append(MAM_Twilight_std,np.std(monthly_twilight_I_BB_datum[MAM_index]))
+         MAM_Lunar_std = np.append(MAM_Lunar_std,np.std(monthly_lunar_I_BB_datum[MAM_index]))
+         MAM_ALAN_std = np.append(MAM_ALAN_std,np.std(monthly_ALAN_I_BB_datum[MAM_index]))
+   
+         JJA_Twilight_std = np.append(JJA_Twilight_std,np.std(monthly_twilight_I_BB_datum[JJA_index]))
+         JJA_Lunar_std = np.append(JJA_Lunar_std,np.std(monthly_lunar_I_BB_datum[JJA_index]))
+         JJA_ALAN_std = np.append(JJA_ALAN_std,np.std(monthly_ALAN_I_BB_datum[JJA_index]))
+
+         SON_Twilight_std = np.append(SON_Twilight_std,np.std(monthly_twilight_I_BB_datum[SON_index]))
+         SON_Lunar_std = np.append(SON_Lunar_std,np.std(monthly_lunar_I_BB_datum[SON_index]))
+         SON_ALAN_std = np.append(SON_ALAN_std,np.std(monthly_ALAN_I_BB_datum[SON_index]))
 
       if position == "surface":
+         # mean
          DJF_Twilight = np.append(DJF_Twilight,np.mean(monthly_twilight_BB[DJF_index]))
          DJF_Lunar = np.append(DJF_Lunar,np.mean(monthly_lunar_BB[DJF_index]))
          DJF_ALAN = np.append(DJF_ALAN,np.mean(monthly_ALAN_BB[DJF_index]))
@@ -450,6 +486,23 @@ def dosage_seasons(position):
          SON_Twilight = np.append(SON_Twilight,np.mean(monthly_twilight_BB[SON_index]))
          SON_Lunar = np.append(SON_Lunar,np.mean(monthly_lunar_BB[SON_index]))
          SON_ALAN = np.append(SON_ALAN,np.mean(monthly_ALAN_BB[SON_index]))
+
+         #std dev
+         DJF_Twilight_std = np.append(DJF_Twilight_std,np.std(monthly_twilight_BB[DJF_index]))
+         DJF_Lunar_std = np.append(DJF_Lunar_std,np.std(monthly_lunar_BB[DJF_index]))
+         DJF_ALAN_std = np.append(DJF_ALAN_std,np.std(monthly_ALAN_BB[DJF_index]))
+   
+         MAM_Twilight_std = np.append(MAM_Twilight_std,np.std(monthly_twilight_BB[MAM_index]))
+         MAM_Lunar_std = np.append(MAM_Lunar_std,np.std(monthly_lunar_BB[MAM_index]))
+         MAM_ALAN_std = np.append(MAM_ALAN_std,np.std(monthly_ALAN_BB[MAM_index]))
+   
+         JJA_Twilight_std = np.append(JJA_Twilight_std,np.std(monthly_twilight_BB[JJA_index]))
+         JJA_Lunar_std = np.append(JJA_Lunar_std,np.std(monthly_lunar_BB[JJA_index]))
+         JJA_ALAN_std = np.append(JJA_ALAN_std,np.std(monthly_ALAN_BB[JJA_index]))
+
+         SON_Twilight_std = np.append(SON_Twilight_std,np.std(monthly_twilight_BB[SON_index]))
+         SON_Lunar_std = np.append(SON_Lunar_std,np.std(monthly_lunar_BB[SON_index]))
+         SON_ALAN_std = np.append(SON_ALAN_std,np.std(monthly_ALAN_BB[SON_index]))
          
       loc_str.append(df_dosage['Location'][0])
       short_loc_str.append(df_dosage['Location'][0][0:2])
@@ -467,17 +520,22 @@ def dosage_seasons(position):
    bars2 = DJF_Lunar[alan_sort]
    bars3 = DJF_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
+   
+   # add in the error bars in the correct sorted order
+   err1 = DJF_ALAN_std[alan_sort]
+   err2 = DJF_Lunar_std[alan_sort]
+   err3 = DJF_Twilight_std[alan_sort]/1e+3
 
    r1 = np.arange(len(DJF_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[0,0].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[0,0].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
-   pcm = axs[0,0].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
+   pcm = axs[0,0].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[0,0].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[0,0].bar(r3, bars3, yerr=err3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[0,0].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[0,0].set(ylabel='Dosage [J] or [KJ]'); axs[0,0].set(xticklabels=short_loc_array)
+   axs[0,0].set(ylabel='Dosage (J m$^{-2}$) or (kJ m$^{-2}$)'); axs[0,0].set(xticklabels=short_loc_array)
    axs[0,0].set(title='A) DJF')
    axs[0,0].set_ylim(top = 550, bottom = 0);   
    axs[0,0].legend()
@@ -491,16 +549,21 @@ def dosage_seasons(position):
    bars3 = MAM_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = MAM_ALAN_std[alan_sort]
+   err2 = MAM_Lunar_std[alan_sort]
+   err3 = MAM_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(MAM_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[0,1].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[0,1].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
-   pcm = axs[0,1].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
+   pcm = axs[0,1].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[0,1].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[0,1].bar(r3, bars3, yerr=err3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[0,1].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[0,1].set(ylabel='Dosage [J] or [KJ]'); axs[0,1].set(xticklabels=short_loc_array)
+   axs[0,1].set(ylabel='Dosage (J m$^{-2}$) or (kJ m$^{-2}$)'); axs[0,1].set(xticklabels=short_loc_array)
    axs[0,1].set(title='B) MAM')
    axs[0,1].set_ylim(top = 550, bottom = 0);   
    #axs[0,1].legend()
@@ -514,16 +577,21 @@ def dosage_seasons(position):
    bars3 = JJA_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = JJA_ALAN_std[alan_sort]
+   err2 = JJA_Lunar_std[alan_sort]
+   err3 = JJA_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(JJA_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[1,0].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[1,0].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
-   pcm = axs[1,0].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
+   pcm = axs[1,0].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[1,0].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[1,0].bar(r3, bars3, yerr=err3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[1,0].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[1,0].set(ylabel='Dosage [J] or [KJ]'); axs[1,0].set(xlabel='City', xticklabels=short_loc_array)
+   axs[1,0].set(ylabel='Dosage (J m$^{-2}$) or (kJ m$^{-2}$)'); axs[1,0].set(xlabel='City', xticklabels=short_loc_array)
    axs[1,0].set(title='C) JJA')
    axs[1,0].set_ylim(top = 550, bottom = 0);   
    #axs[1,0].legend()
@@ -537,21 +605,26 @@ def dosage_seasons(position):
    bars3 = SON_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = SON_ALAN_std[alan_sort]
+   err2 = SON_Lunar_std[alan_sort]
+   err3 = SON_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(SON_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[1,1].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[1,1].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
-   pcm = axs[1,1].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
+   pcm = axs[1,1].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[1,1].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[1,1].bar(r3, bars3, yerr=err3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[1,1].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[1,1].set(ylabel='Dosage [J] or [KJ]'); axs[1,1].set(xlabel='City', xticklabels=short_loc_array)
+   axs[1,1].set(ylabel='Dosage (J m$^{-2}$) or (kJ m$^{-2}$)'); axs[1,1].set(xlabel='City', xticklabels=short_loc_array)
    axs[1,1].set(title='D) SON')
    axs[1,1].set_ylim(top = 550, bottom = 0);   
    #axs[1,1].legend()
    
-   pdb.set_trace()
+   #pdb.set_trace()
 
    fig.savefig(outdir+'/Dosage_seasonal_'+position+'_'+syear+'.png')
    plt.close(fig)
@@ -577,6 +650,23 @@ def max_seasons(position):
    SON_Twilight = np.array([])
    SON_Lunar = np.array([])
    SON_ALAN = np.array([])
+
+   # create empty matrices for std dev for DJF, MAM, JJA, SON for Twilight, Lunar, ALAN 
+   DJF_Twilight_std = np.array([])
+   DJF_Lunar_std = np.array([])
+   DJF_ALAN_std = np.array([])
+   
+   MAM_Twilight_std = np.array([])
+   MAM_Lunar_std = np.array([])
+   MAM_ALAN_std = np.array([])
+   
+   JJA_Twilight_std = np.array([])
+   JJA_Lunar_std = np.array([])
+   JJA_ALAN_std = np.array([])
+
+   SON_Twilight_std = np.array([])
+   SON_Lunar_std = np.array([])
+   SON_ALAN_std = np.array([])
 
    loc_str = []
    short_loc_str = []
@@ -666,6 +756,7 @@ def max_seasons(position):
       SON_index = np.where((smonth == 'Sep') | (smonth == 'Oct') | (smonth == 'Nov'))
 
       if position == "intertidal":
+         #mean
          DJF_Twilight = np.append(DJF_Twilight,np.mean(monthly_max_twilight_I_BB_datum[DJF_index]))
          DJF_Lunar = np.append(DJF_Lunar,np.mean(monthly_max_lunar_I_BB_datum[DJF_index])/1e-6)
          DJF_ALAN = np.append(DJF_ALAN,np.mean(monthly_max_ALAN_I_BB_datum[DJF_index])/1e-6)
@@ -681,8 +772,27 @@ def max_seasons(position):
          SON_Twilight = np.append(SON_Twilight,np.mean(monthly_max_twilight_I_BB_datum[SON_index]))
          SON_Lunar = np.append(SON_Lunar,np.mean(monthly_max_lunar_I_BB_datum[SON_index])/1e-6)
          SON_ALAN = np.append(SON_ALAN,np.mean(monthly_max_ALAN_I_BB_datum[SON_index])/1e-6)
+         
+         #std dev
+         DJF_Twilight_std = np.append(DJF_Twilight_std,np.std(monthly_max_twilight_I_BB_datum[DJF_index]))
+         DJF_Lunar_std = np.append(DJF_Lunar_std,np.std(monthly_max_lunar_I_BB_datum[DJF_index])/1e-6)
+         DJF_ALAN_std = np.append(DJF_ALAN_std,np.std(monthly_max_ALAN_I_BB_datum[DJF_index])/1e-6)
+   
+         MAM_Twilight_std = np.append(MAM_Twilight_std,np.std(monthly_max_twilight_I_BB_datum[MAM_index]))
+         MAM_Lunar_std = np.append(MAM_Lunar_std,np.std(monthly_max_lunar_I_BB_datum[MAM_index])/1e-6)
+         MAM_ALAN_std = np.append(MAM_ALAN_std,np.std(monthly_max_ALAN_I_BB_datum[MAM_index])/1e-6)
+   
+         JJA_Twilight_std = np.append(JJA_Twilight_std,np.std(monthly_max_twilight_I_BB_datum[JJA_index]))
+         JJA_Lunar_std = np.append(JJA_Lunar_std,np.std(monthly_max_lunar_I_BB_datum[JJA_index])/1e-6)
+         JJA_ALAN_std = np.append(JJA_ALAN_std,np.std(monthly_max_ALAN_I_BB_datum[JJA_index])/1e-6)
+
+         SON_Twilight_std = np.append(SON_Twilight_std,np.std(monthly_max_twilight_I_BB_datum[SON_index]))
+         SON_Lunar_std = np.append(SON_Lunar_std,np.std(monthly_max_lunar_I_BB_datum[SON_index])/1e-6)
+         SON_ALAN_std = np.append(SON_ALAN_std,np.std(monthly_max_ALAN_I_BB_datum[SON_index])/1e-6)
+         
 
       if position == "surface":
+         # mean
          DJF_Twilight = np.append(DJF_Twilight,np.mean(monthly_max_twilight_BB[DJF_index]))
          DJF_Lunar = np.append(DJF_Lunar,np.mean(monthly_max_lunar_BB[DJF_index])/1e-6)
          DJF_ALAN = np.append(DJF_ALAN,np.mean(monthly_max_ALAN_BB[DJF_index])/1e-6)
@@ -698,6 +808,23 @@ def max_seasons(position):
          SON_Twilight = np.append(SON_Twilight,np.mean(monthly_max_twilight_BB[SON_index]))
          SON_Lunar = np.append(SON_Lunar,np.mean(monthly_max_lunar_BB[SON_index])/1e-6)
          SON_ALAN = np.append(SON_ALAN,np.mean(monthly_max_ALAN_BB[SON_index])/1e-6)
+         
+         #std dev
+         DJF_Twilight_std = np.append(DJF_Twilight_std,np.std(monthly_max_twilight_BB[DJF_index]))
+         DJF_Lunar_std = np.append(DJF_Lunar_std,np.std(monthly_max_lunar_BB[DJF_index])/1e-6)
+         DJF_ALAN_std = np.append(DJF_ALAN_std,np.std(monthly_max_ALAN_BB[DJF_index])/1e-6)
+   
+         MAM_Twilight_std = np.append(MAM_Twilight_std,np.std(monthly_max_twilight_BB[MAM_index]))
+         MAM_Lunar_std = np.append(MAM_Lunar_std,np.std(monthly_max_lunar_BB[MAM_index])/1e-6)
+         MAM_ALAN_std = np.append(MAM_ALAN_std,np.std(monthly_max_ALAN_BB[MAM_index])/1e-6)
+   
+         JJA_Twilight_std = np.append(JJA_Twilight_std,np.std(monthly_max_twilight_BB[JJA_index]))
+         JJA_Lunar_std = np.append(JJA_Lunar_std,np.std(monthly_max_lunar_BB[JJA_index])/1e-6)
+         JJA_ALAN_std = np.append(JJA_ALAN_std,np.std(monthly_max_ALAN_BB[JJA_index])/1e-6)
+
+         SON_Twilight_std = np.append(SON_Twilight_std,np.std(monthly_max_twilight_BB[SON_index]))
+         SON_Lunar_std = np.append(SON_Lunar_std,np.std(monthly_max_lunar_BB[SON_index])/1e-6)
+         SON_ALAN_std = np.append(SON_ALAN_std,np.std(monthly_max_ALAN_BB[SON_index])/1e-6)
          
       loc_str.append(df_dosage['Location'][0])
       short_loc_str.append(df_dosage['Location'][0][0:2])
@@ -718,16 +845,21 @@ def max_seasons(position):
    bars3 = DJF_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = DJF_ALAN_std[alan_sort]
+   err2 = DJF_Lunar_std[alan_sort]
+   err3 = DJF_Twilight_std[alan_sort]/1e+3
+   
    r1 = np.arange(len(DJF_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[0,0].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[0,0].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[0,0].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[0,0].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
    #pcm = axs[0,0].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[0,0].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[0,0].set(ylabel='Mean max irradiance [$\mu$W/m$^2$]'); axs[0,0].set(xticklabels=short_loc_array)
+   axs[0,0].set(ylabel='Mean max irradiance ($\mu$W m$^{-2}$)'); axs[0,0].set(xticklabels=short_loc_array)
    axs[0,0].set(title='A) DJF')
    axs[0,0].set_ylim(top = 1500, bottom = 0);   
    axs[0,0].legend()
@@ -741,16 +873,22 @@ def max_seasons(position):
    bars3 = MAM_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = MAM_ALAN_std[alan_sort]
+   err2 = MAM_Lunar_std[alan_sort]
+   err3 = MAM_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(MAM_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[0,1].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[0,1].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[0,1].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[0,1].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
    #pcm = axs[0,1].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[0,1].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[0,1].set(ylabel='Mean max irradiance [$\mu$W/m$^2$]'); axs[0,1].set(xticklabels=short_loc_array)
+   axs[0,1].yaxis.set_label_coords(-0.12,0.5)
+   axs[0,1].set(ylabel='Mean max irradiance ($\mu$W m$^{-2}$)'); axs[0,1].set(xticklabels=short_loc_array)
    axs[0,1].set(title='B) MAM')
    axs[0,1].set_ylim(top = 1500, bottom = 0);   
    #axs[0,1].legend()
@@ -764,16 +902,21 @@ def max_seasons(position):
    bars3 = JJA_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = JJA_ALAN_std[alan_sort]
+   err2 = JJA_Lunar_std[alan_sort]
+   err3 = JJA_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(JJA_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[1,0].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[1,0].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[1,0].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[1,0].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
    #pcm = axs[1,0].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[1,0].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[1,0].set(ylabel='Mean max irradiance [$\mu$W/m$^2$]'); axs[1,0].set(xlabel='City', xticklabels=short_loc_array)
+   axs[1,0].set(ylabel='Mean max irradiance ($\mu$W m$^{-2}$)'); axs[1,0].set(xlabel='City', xticklabels=short_loc_array)
    axs[1,0].set(title='C) JJA')
    axs[1,0].set_ylim(top = 1500, bottom = 0);   
    #axs[1,0].legend()
@@ -787,16 +930,22 @@ def max_seasons(position):
    bars3 = SON_Twilight[alan_sort]/1e+3
    short_loc_array = short_loc_array[alan_sort]
 
+   # add in the error bars in the correct sorted order
+   err1 = SON_ALAN_std[alan_sort]
+   err2 = SON_Lunar_std[alan_sort]
+   err3 = SON_Twilight_std[alan_sort]/1e+3
+
    r1 = np.arange(len(SON_Lunar))
    r2 = [x + barWidth for x in r1]
    r3 = [x + barWidth for x in r2]
 
-   pcm = axs[1,1].bar(r1, bars1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
-   pcm = axs[1,1].bar(r2, bars2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
+   pcm = axs[1,1].bar(r1, bars1, yerr=err1, color='#ff7f0e', width=barWidth, edgecolor='k', label='ALAN')
+   pcm = axs[1,1].bar(r2, bars2, yerr=err2, color='#C5C9C7', width=barWidth, edgecolor='k', label='Lunar')
    #pcm = axs[1,1].bar(r3, bars3, color='#00008B', width=barWidth, edgecolor='k', label='Twilight')
   
    axs[1,1].xaxis.set_major_locator(ticker.FixedLocator(np.arange(len(short_loc_array))))
-   axs[1,1].set(ylabel='Mean max irradiance [$\mu$W/m$^2$]'); axs[1,1].set(xlabel='City', xticklabels=short_loc_array)
+   axs[1,1].yaxis.set_label_coords(-0.12,0.5)
+   axs[1,1].set(ylabel='Mean max irradiance ($\mu$W m$^{-2}$)'); axs[1,1].set(xlabel='City', xticklabels=short_loc_array)
    axs[1,1].set(title='D) SON')
    axs[1,1].set_ylim(top = 1500, bottom = 0);   
    #axs[1,1].legend()
@@ -891,76 +1040,78 @@ def dosage_plot(location):
       monthly_twilight_I_Green_datum = monthly_twilight_I_Green_datum[0:12]
       monthly_twilight_I_Blue_datum = monthly_twilight_I_Blue_datum[0:12]
 
-      fig, axs = plt.subplots(2,2, figsize=(10,7))
-      fig.suptitle(location+" "+syear, fontsize=16)
+      fig, axs = plt.subplots(2,2, figsize=(10,8))
+      fig.subplots_adjust(wspace=.25,hspace=.25)
+      fig.suptitle(location+" "+syear, fontsize=14)
 
       pcm = axs[0,0].plot(smonth, monthly_solar_BB/1e+6, 'k', label='Broadband')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Red/1e+6, 'r', label='Red(620-740nm)')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Green/1e+6, 'g', label='Green(495-560nm)')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Blue/1e+6, 'b', label='Blue(400-500nm)')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Red/1e+6, 'r', label='Red (620-740 nm)')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Green/1e+6, 'g', label='Green (495-560 nm)')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Blue/1e+6, 'b', label='Blue (400-500 nm)')
       #pcm = axs[0,0].plot(smonth, (monthly_solar_I_Blue+monthly_solar_I_Red+monthly_solar_I_Green)/1e+6, 'gray')
-      axs[0,0].set_title('Solar - surface'); axs[0,0].set(ylabel='Dosage [MJ]'); #axs[0,0].set(xlabel='Month')
+      axs[0,0].set_title('A) Solar - surface'); axs[0,0].set(ylabel='Dosage (MJ m$^{-2}$)'); #axs[0,0].set(xlabel='Month')
       axs[0,0].set_ylim(top = 500, bottom = 0);
      
       pcm = axs[0,1].plot(smonth, monthly_twilight_BB/1e+3, 'k', label='Broadband')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Red/1e+3, 'r', label='Red(620-740nm)')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Green/1e+3, 'g', label='Green(495-560nm)')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Blue/1e+3, 'b', label='Blue(400-500nm)')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Red/1e+3, 'r', label='Red (620-740 nm)')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Green/1e+3, 'g', label='Green (495-560 nm)')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Blue/1e+3, 'b', label='Blue (400-500 nm)')
       #pcm = axs[0,1].plot(smonth, (monthly_twilight_I_Blue+monthly_twilight_I_Red+monthly_twilight_I_Green)/1e+3, 'gray')
-      axs[0,1].set_title('Twilight - surface'); axs[0,1].set(ylabel='Dosage [kJ]'); #axs[0,1].set(xlabel='Month')
+      axs[0,1].set_title('B) Twilight - surface'); axs[0,1].set(ylabel='Dosage (kJ m$^{-2}$)'); #axs[0,1].set(xlabel='Month')
       axs[0,1].legend()
       axs[0,1].set_ylim(top = 500, bottom = 0);
       
       pcm = axs[1,0].plot(smonth, monthly_lunar_BB, 'k', label='Broadband')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Red, 'r', label='Red(620-740nm)')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Green, 'g', label='Green(495-560nm)')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Blue, 'b', label='Blue(400-500nm)')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Red, 'r', label='Red (620-740 nm)')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Green, 'g', label='Green (495-560 nm)')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Blue, 'b', label='Blue (400-500 nm)')
       #pcm = axs[1,0].plot(smonth, (monthly_lunar_I_Blue+monthly_lunar_I_Red+monthly_lunar_I_Green), 'gray')
-      axs[1,0].set_title('Lunar - surface'); axs[1,0].set(ylabel='Dosage [J]'); axs[1,0].set(xlabel='Month')
+      axs[1,0].set_title('C) Lunar - surface'); axs[1,0].set(ylabel='Dosage (J m$^{-2}$)'); axs[1,0].set(xlabel='Month')
       axs[1,0].set_ylim(top = 550, bottom = 0);
    
       pcm = axs[1,1].plot(smonth, monthly_ALAN_BB, 'k', label='Broadband')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Red, 'r', label='Red(620-740nm)')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Green, 'g', label='Green(495-560nm)')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Blue, 'b', label='Blue(400-500nm)')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Red, 'r', label='Red (620-740 nm)')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Green, 'g', label='Green (495-560 nm)')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Blue, 'b', label='Blue (400-500 nm)')
       #pcm = axs[1,1].plot(smonth, (monthly_ALAN_I_Blue+monthly_ALAN_I_Red+monthly_ALAN_I_Green), 'gray')
-      axs[1,1].set_title('ALAN - surface'); axs[1,1].set(ylabel='Dosage [J]'); axs[1,1].set(xlabel='Month')
+      axs[1,1].set_title('D) ALAN - surface'); axs[1,1].set(ylabel='Dosage (J m$^{-2}$)'); axs[1,1].set(xlabel='Month')
       axs[1,1].set_ylim(top = 550, bottom = 0);
    
       fig.savefig(outdir+'/Dosage_surface_'+location+'_'+syear+'.png')
       print('Produced image: '+outdir+'/Dosage_surface_'+location+'_'+syear+'.png')
       plt.close(fig)
       
-      fig, axs = plt.subplots(2,2, figsize=(10,7))
-      fig.suptitle(location+" "+syear, fontsize=16)
+      fig, axs = plt.subplots(2,2, figsize=(10,8))
+      fig.subplots_adjust(wspace=.25,hspace=.25)
+      fig.suptitle(location+" "+syear, fontsize=14)
 
       pcm = axs[0,0].plot(smonth, monthly_solar_I_BB_datum/1e+6, 'k', label='Broadband')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Red_datum/1e+6, 'r', label='Red(620-740nm)')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Green_datum/1e+6, 'g', label='Green(495-560nm)')
-      pcm = axs[0,0].plot(smonth, monthly_solar_I_Blue_datum/1e+6, 'b', label='Blue(400-500nm)')
-      axs[0,0].set_title('Solar - intertidal'); axs[0,0].set(ylabel='Dosage [MJ]'); #axs[0,0].set(xlabel='Month')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Red_datum/1e+6, 'r', label='Red (620-740 nm)')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Green_datum/1e+6, 'g', label='Green (495-560 nm)')
+      pcm = axs[0,0].plot(smonth, monthly_solar_I_Blue_datum/1e+6, 'b', label='Blue (400-500 nm)')
+      axs[0,0].set_title('A) Solar - intertidal'); axs[0,0].set(ylabel='Dosage (MJ m$^{-2}$)'); #axs[0,0].set(xlabel='Month')
       axs[0,0].set_ylim(top = 500, bottom = 0);
      
       pcm = axs[0,1].plot(smonth, monthly_twilight_I_BB_datum/1e+3, 'k', label='Broadband')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Red_datum/1e+3, 'r', label='Red(620-740nm)')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Green_datum/1e+3, 'g', label='Green(495-560nm)')
-      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Blue_datum/1e+3, 'b', label='Blue(400-500nm)')
-      axs[0,1].set_title('Twilight - intertidal'); axs[0,1].set(ylabel='Dosage [kJ]'); #axs[0,1].set(xlabel='Month')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Red_datum/1e+3, 'r', label='Red (620-740 nm)')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Green_datum/1e+3, 'g', label='Green (495-560 nm)')
+      pcm = axs[0,1].plot(smonth, monthly_twilight_I_Blue_datum/1e+3, 'b', label='Blue (400-500 nm)')
+      axs[0,1].set_title('B) Twilight - intertidal'); axs[0,1].set(ylabel='Dosage (kJ m$^{-2}$)'); #axs[0,1].set(xlabel='Month')
       axs[0,1].legend()
       axs[0,1].set_ylim(top = 500, bottom = 0);
       
       pcm = axs[1,0].plot(smonth, monthly_lunar_I_BB_datum, 'k', label='Broadband')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Red_datum, 'r', label='Red(620-740nm)')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Green_datum, 'g', label='Green(495-560nm)')
-      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Blue_datum, 'b', label='Blue(400-500nm)')
-      axs[1,0].set_title('Lunar - intertidal'); axs[1,0].set(ylabel='Dosage [J]'); axs[1,0].set(xlabel='Month')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Red_datum, 'r', label='Red (620-740 nm)')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Green_datum, 'g', label='Green (495-560 nm)')
+      pcm = axs[1,0].plot(smonth, monthly_lunar_I_Blue_datum, 'b', label='Blue (400-500 nm)')
+      axs[1,0].set_title('C) Lunar - intertidal'); axs[1,0].set(ylabel='Dosage (J m$^{-2}$)'); axs[1,0].set(xlabel='Month')
       axs[1,0].set_ylim(top = 550, bottom = 0);
    
       pcm = axs[1,1].plot(smonth, monthly_ALAN_I_BB_datum, 'k', label='Broadband')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Red_datum, 'r', label='Red(620-740nm)')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Green_datum, 'g', label='Green(495-560nm)')
-      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Blue_datum, 'b', label='Blue(400-500nm)')
-      axs[1,1].set_title('ALAN - intertidal'); axs[1,1].set(ylabel='Dosage [J]'); axs[1,1].set(xlabel='Month')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Red_datum, 'r', label='Red (620-740 nm)')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Green_datum, 'g', label='Green (495-560 nm)')
+      pcm = axs[1,1].plot(smonth, monthly_ALAN_I_Blue_datum, 'b', label='Blue (400-500 nm)')
+      axs[1,1].set_title('D) ALAN - intertidal'); axs[1,1].set(ylabel='Dosage (J m$^{-2}$)'); axs[1,1].set(xlabel='Month')
       axs[1,1].set_ylim(top = 550, bottom = 0);
    
       fig.savefig(outdir+'/Dosage_intertidal_'+location+'_'+syear+'.png')
@@ -1055,36 +1206,36 @@ def max_plot(location):
       fig.suptitle(location+" "+syear, fontsize=16)
 
       pcm = axs[0,0].plot(smonth, monthly_max_solar_BB, 'k', label='Broadband')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Red, 'r', label='Red(620-740nm)')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Green, 'g', label='Green(495-560nm)')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Blue, 'b', label='Blue(400-500nm)')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Red, 'r', label='Red (620-740nm)')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Green, 'g', label='Green (495-560nm)')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Blue, 'b', label='Blue (400-500nm)')
       #pcm = axs[0,0].plot(smonth, (monthly_max_solar_I_Blue+monthly_max_solar_I_Red+monthly_max_solar_I_Green)/1e+6, 'gray')
-      axs[0,0].set_title('Solar - surface'); axs[0,0].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,0].set(xlabel='Month')
+      axs[0,0].set_title('A) Solar - surface'); axs[0,0].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,0].set(xlabel='Month')
       axs[0,0].set_ylim(top = 500, bottom = 0);
      
       pcm = axs[0,1].plot(smonth, monthly_max_twilight_BB, 'k', label='Broadband')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Red, 'r', label='Red(620-740nm)')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Green, 'g', label='Green(495-560nm)')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Blue, 'b', label='Blue(400-500nm)')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Red, 'r', label='Red (620-740nm)')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Green, 'g', label='Green (495-560nm)')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Blue, 'b', label='Blue (400-500nm)')
       #pcm = axs[0,1].plot(smonth, (monthly_max_twilight_I_Blue+monthly_max_twilight_I_Red+monthly_max_twilight_I_Green)/1e+3, 'gray')
-      axs[0,1].set_title('Twilight - surface'); axs[0,1].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,1].set(xlabel='Month')
+      axs[0,1].set_title('B) Twilight - surface'); axs[0,1].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,1].set(xlabel='Month')
       axs[0,1].legend()
       axs[0,1].set_ylim(top = 10, bottom = 0);
       
       pcm = axs[1,0].plot(smonth, monthly_max_lunar_BB/1e-6, 'k', label='Broadband')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Red/1e-6, 'r', label='Red(620-740nm)')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Green/1e-6, 'g', label='Green(495-560nm)')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Blue/1e-6, 'b', label='Blue(400-500nm)')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Red/1e-6, 'r', label='Red (620-740nm)')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Green/1e-6, 'g', label='Green (495-560nm)')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Blue/1e-6, 'b', label='Blue (400-500nm)')
       #pcm = axs[1,0].plot(smonth, (monthly_max_lunar_I_Blue+monthly_max_lunar_I_Red+monthly_max_lunar_I_Green), 'gray')
-      axs[1,0].set_title('Lunar - surface'); axs[1,0].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,0].set(xlabel='Month')
+      axs[1,0].set_title('C) Lunar - surface'); axs[1,0].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,0].set(xlabel='Month')
       axs[1,0].set_ylim(top = 1500, bottom = 0);
    
       pcm = axs[1,1].plot(smonth, monthly_max_ALAN_BB/1e-6, 'k', label='Broadband')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Red/1e-6, 'r', label='Red(620-740nm)')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Green/1e-6, 'g', label='Green(495-560nm)')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Blue/1e-6, 'b', label='Blue(400-500nm)')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Red/1e-6, 'r', label='Red (620-740nm)')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Green/1e-6, 'g', label='Green (495-560nm)')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Blue/1e-6, 'b', label='Blue (400-500nm)')
       #pcm = axs[1,1].plot(smonth, (monthly_max_ALAN_I_Blue+monthly_max_ALAN_I_Red+monthly_max_ALAN_I_Green), 'gray')
-      axs[1,1].set_title('ALAN - surface'); axs[1,1].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,1].set(xlabel='Month')
+      axs[1,1].set_title('D) ALAN - surface'); axs[1,1].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,1].set(xlabel='Month')
       axs[1,1].set_ylim(top = 1500, bottom = 0);
    
       fig.savefig(outdir+'/max_irradiance_surface_'+location+'_'+syear+'.png')
@@ -1095,32 +1246,32 @@ def max_plot(location):
       fig.suptitle(location+" "+syear, fontsize=16)
 
       pcm = axs[0,0].plot(smonth, monthly_max_solar_I_BB_datum, 'k', label='Broadband')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Red_datum, 'r', label='Red(620-740nm)')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Green_datum, 'g', label='Green(495-560nm)')
-      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Blue_datum, 'b', label='Blue(400-500nm)')
-      axs[0,0].set_title('Solar - intertidal'); axs[0,0].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,0].set(xlabel='Month')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Red_datum, 'r', label='Red (620-740nm)')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Green_datum, 'g', label='Green (495-560nm)')
+      pcm = axs[0,0].plot(smonth, monthly_max_solar_I_Blue_datum, 'b', label='Blue (400-500nm)')
+      axs[0,0].set_title('A) Solar - intertidal'); axs[0,0].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,0].set(xlabel='Month')
       axs[0,0].set_ylim(top = 500, bottom = 0);
      
       pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_BB_datum, 'k', label='Broadband')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Red_datum, 'r', label='Red(620-740nm)')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Green_datum, 'g', label='Green(495-560nm)')
-      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Blue_datum, 'b', label='Blue(400-500nm)')
-      axs[0,1].set_title('Twilight - intertidal'); axs[0,1].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,1].set(xlabel='Month')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Red_datum, 'r', label='Red (620-740nm)')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Green_datum, 'g', label='Green (495-560nm)')
+      pcm = axs[0,1].plot(smonth, monthly_max_twilight_I_Blue_datum, 'b', label='Blue (400-500nm)')
+      axs[0,1].set_title('B) Twilight - intertidal'); axs[0,1].set(ylabel='Max irradiance [W/m$^2$]'); #axs[0,1].set(xlabel='Month')
       axs[0,1].legend()
       axs[0,1].set_ylim(top = 10, bottom = 0);
       
       pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_BB_datum/1e-6, 'k', label='Broadband')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Red_datum/1e-6, 'r', label='Red(620-740nm)')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Green_datum/1e-6, 'g', label='Green(495-560nm)')
-      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Blue_datum/1e-6, 'b', label='Blue(400-500nm)')
-      axs[1,0].set_title('Lunar - intertidal'); axs[1,0].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,0].set(xlabel='Month')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Red_datum/1e-6, 'r', label='Red (620-740nm)')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Green_datum/1e-6, 'g', label='Green (495-560nm)')
+      pcm = axs[1,0].plot(smonth, monthly_max_lunar_I_Blue_datum/1e-6, 'b', label='Blue (400-500nm)')
+      axs[1,0].set_title('C) Lunar - intertidal'); axs[1,0].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,0].set(xlabel='Month')
       axs[1,0].set_ylim(top = 1500, bottom = 0);
    
       pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_BB_datum/1e-6, 'k', label='Broadband')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Red_datum/1e-6, 'r', label='Red(620-740nm)')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Green_datum/1e-6, 'g', label='Green(495-560nm)')
-      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Blue_datum/1e-6, 'b', label='Blue(400-500nm)')
-      axs[1,1].set_title('ALAN - intertidal'); axs[1,1].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,1].set(xlabel='Month')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Red_datum/1e-6, 'r', label='Red (620-740nm)')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Green_datum/1e-6, 'g', label='Green (495-560nm)')
+      pcm = axs[1,1].plot(smonth, monthly_max_ALAN_I_Blue_datum/1e-6, 'b', label='Blue (400-500nm)')
+      axs[1,1].set_title('D) ALAN - intertidal'); axs[1,1].set(ylabel='Max irradiance [$\mu$W/m$^2$]'); axs[1,1].set(xlabel='Month')
       axs[1,1].set_ylim(top = 1500, bottom = 0);
    
       fig.savefig(outdir+'/max_irradiance_intertidal_'+location+'_'+syear+'.png')

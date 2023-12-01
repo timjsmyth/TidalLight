@@ -127,7 +127,7 @@ def Lun3d(dec_day, LunSpec, LunI_LSb, LunI_LSRes, LunI_LS, datum):
 ###################################### Overlay plots ################################
 def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, lIBT,datum, datum_percentage, phase, location, figurepath):
     fig, ax = plt.subplots(4, figsize=(13.5,7.34))
-    fig.suptitle(f'Lunar (Spectral) - {location}\n')
+    #fig.suptitle(f'Lunar (Spectral) - {location}\n')
     AA = np.ones(len(dec_day), dtype=int)
     aa = 2300*AA
     bb = -300*AA
@@ -162,7 +162,7 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
     ax[0].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[0].set_yscale('symlog')
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
-    ax[0].set_title('Surface Lunar Irradiance')
+    ax[0].set_title('Surface lunar irradiance')
 
     ax0 = ax[0].twinx()
     ax0.fill_between(dec_day, aa, bb, where= sol < AA, facecolor='grey', alpha=0.2)
@@ -198,7 +198,7 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
         foundmaxLSb.append(maximumLSb)
         ax[1].plot(dec_day, LunI_LSb.iloc[:,i], label=label, color=colour, alpha=a)
     # ax[1].plot(dec_day, lIBT, label='Lunar Irradiance at seabed', color='lightsalmon')
-    ax[1].set_title('Intertial Lunar Irradiance')
+    ax[1].set_title('Intertidal lunar irradiance')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[1].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[1].set_yscale('symlog')
@@ -224,9 +224,9 @@ def LunOverlay(dec_day, LunSpec, LunI_LS, LunI_LSb, I, tide_h, waterdepth, sol, 
 
     # LUNAR PHASE
     ax[3].plot(dec_day, phase, label='Lunar phase', color='darkgrey')
-    ax[3].set_title('Lunar Phase cycle')
-    ax[3].set_ylabel('Normalised Phase')
-    ax[3].set_xlabel("Julian Day")
+    ax[3].set_title('Lunar phase cycle')
+    ax[3].set_ylabel('Normalised phase')
+    ax[3].set_xlabel("Julian day")
     # ax[3].set_xlim([182.1, 182.3])
 
     plt.tight_layout(pad=0.4, w_pad=0.4, h_pad=0.5)

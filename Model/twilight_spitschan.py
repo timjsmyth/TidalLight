@@ -56,9 +56,9 @@ def main(solar_elevation, atmosphere_type, spectral_group):
       index = np.where(np.float64(solar_elevation) == elevation_angles)
 
       # Need to interpolate between two angles within the LUT (integer values between 0 and -18)
-      if not index[0] and np.float(solar_elevation) != 0:
-         indexu = np.max(np.where(np.float(solar_elevation) < elevation_angles))
-         indexl = np.min(np.where(np.float(solar_elevation) > elevation_angles))
+      if not index[0] and np.float64(solar_elevation) != 0:
+         indexu = np.max(np.where(np.float64(solar_elevation) < elevation_angles))
+         indexl = np.min(np.where(np.float64(solar_elevation) > elevation_angles))
          
          # extract the two columns needed for the interpolation
          upper_spectrum = df.iloc[:,indexu+1].to_numpy() # bug fix within the df to add index+1 [wavelength is column 0]
@@ -71,7 +71,7 @@ def main(solar_elevation, atmosphere_type, spectral_group):
          for i in range(len(actual_spectrum)):
             x = [elevation_angles[indexl], elevation_angles[indexu]]
             y = [lower_spectrum[i], upper_spectrum[i]]
-            actual_spectrum[i] = np.interp(np.float(solar_elevation),x,y) 
+            actual_spectrum[i] = np.interp(np.float64(solar_elevation),x,y) 
 
       # No need for interpolation within the LUT if integer value of solar_elevation (0 -> -18) specified
       else:

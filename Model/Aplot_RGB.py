@@ -108,7 +108,7 @@ def A3d(dec_day, SS_wavenm, AI_ASb, AI_ASRes, AI_AS, col_names_SS, datum, locati
 ###################### Overlay Plots ####################################   
 def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, aIBT, col_names_SS, datum, datum_percentage, location, skycondition, ALAN_TYPE, figurepath):
     fig, ax = plt.subplots(4, figsize=(13.5,7.34))
-    fig.suptitle(f'{ALAN_TYPE} - ALAN (Spectral + Broadband) ({skycondition})- {location}\n')
+    #fig.suptitle(f'{ALAN_TYPE} - ALAN (Spectral + Broadband) ({skycondition})- {location}\n')
     #fig.suptitle(f'Chlorophyll = {args.chlorophyll}, fCDOM = {args.CDOM}, backscatter = {args.backscatter}')
     # ALAN INT SEALEVEL
     ax[0].plot(dec_day, A, color='black')
@@ -139,7 +139,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
     ax[0].yaxis.set_major_formatter(ScalarFormatter())
     # ax[0].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[0].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
-    ax[0].set_title('Surface ALAN Irradiance')
+    ax[0].set_title('Surface ALAN irradiance')
     ax0.set_ylim([(-max(A)/10), (max(A)+max(A)/10)])
     
 
@@ -165,7 +165,7 @@ def AOverlay(dec_day, ASpec, AI_AS, AI_ASb, A, tide_h, waterdepth, night, sol, a
             a = 0.3
         ax[1].plot(dec_day, AI_ASb.iloc[:,i], label=label, color=colour, alpha=a)
     #ax[1].legend()
-    ax[1].set_title('Intertidal ALAN Irradiance')
+    ax[1].set_title('Intertidal ALAN irradiance')
     #ax[1].set_ylabel('Irr (umol m^-2 s^-1)')
     ax[1].set_ylabel('Irradiance\n (\u03bcW m$^{-2}$)')
     # ax[1].set_yscale('symlog')
