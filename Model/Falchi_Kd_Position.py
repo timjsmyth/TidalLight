@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
 from timeit import default_timer as timer
@@ -18,6 +18,9 @@ from matplotlib.colors import LogNorm
 # from mpl_toolkits.basemap import Basemap
 import argparse
 import pandas as pd
+import pdb
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def find_nearest(array, value):
    array = np.asarray(array)
@@ -111,14 +114,12 @@ def read_falchi(latitude, longitude, sky_condition, input_flag):
    # print(falchi_map.shape, type(falchi_map))
 
    ##### Create header lists and DataFrames #####
-   column_r = ["Lat", "Lon", "Month", "ALAN_R (uW/m^2)", "Kd_R"]
-   column_g = ["Lat", "Lon", "Month", "ALAN_G (uW/m^2)", "Kd_G"]
-   column_b = ["Lat", "Lon", "Month", "ALAN_B (uW/m^2)", "Kd_B"]
+   column_r = ["Latitude", "Longitude", "Month", "ALAN_R_(uW/m^2)", "Kd_R"]
+   column_g = ["Latitude", "Longitude", "Month", "ALAN_G_(uW/m^2)", "Kd_G"]
+   column_b = ["Latitude", "Longitude", "Month", "ALAN_B_(uW/m^2)", "Kd_B"]
    df_r = pd.DataFrame(columns=column_r)
    df_g = pd.DataFrame(columns=column_g)
    df_b = pd.DataFrame(columns=column_b)
-   
-   
    
    # IF Working from home using external harddrive as data store (mount D: drive int the "mnt" folder using sudo mkdir /mnt/d; sudo mount -t drvfs D: /mnt/d)
    # datadir = "/mnt/d/PML_LastDay/ALICE_Project/ALAN_Map+Kd/"
@@ -286,6 +287,9 @@ def read_falchi(latitude, longitude, sky_condition, input_flag):
          df_r = df_r.append(pd.Series(_r, index=df_r.columns), ignore_index=True)
          df_g = df_g.append(pd.Series(_g, index=df_g.columns), ignore_index=True)
          df_b = df_b.append(pd.Series(_b, index=df_b.columns), ignore_index=True)
+         #df_r = df_r.concat(pd.Series(_r, index=df_r.columns), ignore_index=True)
+         #df_g = df_g.concat(pd.Series(_g, index=df_g.columns), ignore_index=True)
+         #df_b = df_b.concat(pd.Series(_b, index=df_b.columns), ignore_index=True)
          print("Month: ", month)
          ALAN_total = pd.Series([input_pos_ALAN])
          ALAN_mCd = pd.Series([ALAN_mCdm2])
@@ -297,11 +301,16 @@ if __name__=='__main__':
    parser.add_argument("-sky",  type=str, action='store',   help="Input either [cloudy], [clear] for scaling factors")
    parser.add_argument("-lat", "--latitude",type=float, action="store", help="Longitude in decimal degrees")
    parser.add_argument("-lon", "--longitude", type=float, action="store", help="Latitude in decimal degrees")
+   parser.add_argument("-ofile", "--ofile", type=str, default='', help="Output csv filename")   
+   
    args = parser.parse_args() 
    
-
    latitude = 50.27 # latitude_deg
    longitude = -4.13 # longitude_deg
+   latitude = 50.379180734500096
+   longitude = -4.191736989999981
+
+   input_flag = 0
    sky = "clear"
    if args.sky:
       sky = args.sky
@@ -312,8 +321,17 @@ if __name__=='__main__':
    if args.longitude:
       longitude = args.longitude
    
-   Red, Green, Blue, ALAN_Total, ALAN_mCd = read_falchi(latitude, longitude, sky)
+   Red, Green, Blue, ALAN_Total, ALAN_mCd = read_falchi(latitude, longitude, sky, input_flag)
    print("Red\n", Red)
    print("Green\n", Green)
    print("Blue\n", Blue)
+   
+   if args.ofile:
+      ofile = args.ofile
+      print(ofile)
+      RG = pd.merge(Red,Green)
+      RGB = pd.merge(RG,Blue)
+      RGB['Irr_(uW/m^2)'] = ALAN_Total
+      RGB['Lum_(uCd/m^2)'] = ALAN_mCd
+      RGB.to_csv(ofile,index=True)
    

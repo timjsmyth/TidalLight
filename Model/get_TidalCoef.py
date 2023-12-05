@@ -39,7 +39,7 @@ def get_TidalCoef(geo_location, reftime):
 
    # read in the TPXO file
    # locate the coefficients belonging to the geo_location name (e.g. 'Tokyo')
-   TPXOpath = os.getcwd() + "/Required/TPXO/TPXO_ext_tides.csv" # path of data file output
+   TPXOpath = os.getcwd() + "/Required/TPXO/TPXO_tides.csv" # path of data file output
    df_tpxo = pd.read_csv(TPXOpath, delimiter=',', engine='python')  
    print("Extracting data from specific location")
    print(geo_location)

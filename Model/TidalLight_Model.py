@@ -297,6 +297,10 @@ def main():
         latitude_deg = -5.06; longitude_deg = 119.329
         Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
 
+    #elif geo_location == 'Ruben_1':
+    #    latitude_deg = -14.279126735499915; longitude_deg = -170.70000372000004 #
+    #    Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
+
     #elif geo_location == 'GEOTAG':
     #    latitude_deg = LATLATLAT; longitude_deg = LONLONLON
     #    Tide_fname = "TideGEOTAG_L1.csv"
@@ -306,7 +310,9 @@ def main():
         geo_location = ''
     if args.longitude:
         longitude_deg = args.longitude
-    
+    if (args.latitude and args.longitude):
+        location = EarthLocation(lat=latitude_deg, lon=longitude_deg, height=1)
+
     if args.station:
         locations = pd.read_csv("../TamirLocDoc.csv")
         # pdb.set_trace()
@@ -317,9 +323,9 @@ def main():
         latitude_deg = float(locations['LatDeci'].loc[row_index])
         longitude_deg = float(locations['Lon'].loc[row_index])
         print("location (Lat/Lon)", latitude_deg, longitude_deg)
+        location = EarthLocation(lat=latitude_deg, lon=longitude_deg, height=1)
 
     t_incr = args.time
-    location = EarthLocation(lat=latitude_deg, lon=longitude_deg, height=1)
     condition = "clear"
     ##  ALAN average broadband intensity for clear and cloudy sky conditions
     if args.ALAN==1:
@@ -348,6 +354,9 @@ def main():
             Kd_Falchi_Output = pd.read_csv(f"Kd_Falchi_Output_{geo_location}.csv")
             # Label values for use throughout script
             ALAN_R = Kd_Falchi_Output["ALAN_R_(uW/m^2)"]; ALAN_G = Kd_Falchi_Output["ALAN_G_(uW/m^2)"]; ALAN_B = Kd_Falchi_Output["ALAN_B_(uW/m^2)"]; Kd_R = Kd_Falchi_Output["Kd_R"]; Kd_G = Kd_Falchi_Output["Kd_G"]; Kd_B = Kd_Falchi_Output["Kd_B"]; ALAN_total = Kd_Falchi_Output["Irr_(uW/m^2)"][0]; ALAN_mCd = Kd_Falchi_Output["Lum_(uCd/m^2)"][0]; Month_Kd = Kd_Falchi_Output["Month"] 
+            latitude_deg = Kd_Falchi_Output['Latitude'][0]
+            longitude_deg = Kd_Falchi_Output['Longitude'][0]
+            location = EarthLocation(lat=latitude_deg, lon=longitude_deg, height=1)
         
         R = 0; G = 0; B=0
         try:
@@ -412,7 +421,8 @@ def main():
            # This bit isn't working properly - likely error is in the Tidal coefficient database
            # Need to write code which looks at the TPXO netcdf files stored in /data/sthenno1/backup/pica/data/TPXO/DATA
            print('     using global model (TPXO) for tidal coefficients')
-           c = get_TidalCoef.get_TidalCoef(geo_location, time[0])
+           #c = get_TidalCoef.get_TidalCoef(geo_location, time[0])
+           c = get_TidalCoef.get_TidalCoef('DUMMY', time[0])
            # 2. Reconstruct the tide over that year
            TCreconst = utide.reconstruct(time, c)
            TL = TCreconst.h
