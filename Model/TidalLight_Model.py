@@ -23,7 +23,6 @@ import Falchi_Kd_Position
 import twilight_spitschan
 import gcirrad
 
-
 import numpy as np
 import datetime
 from matplotlib import rc
@@ -39,7 +38,6 @@ from astroplan import moon
 import timeit
 import calendar
 
-
 import subprocess
 from dateutil import parser
 import SpectralSplit
@@ -51,6 +49,12 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import spectres
+
+from tpxo_tide_prediction import (
+    read_parameter_file,
+    tide_predict,
+    write_tides
+    )
 
 # Disable
 def blockPrint():
@@ -117,6 +121,7 @@ def main():
     aparser.add_argument("-thr", "--threshold", action="store", type=float, help="Threshold Intensity")
     aparser.add_argument("-stn", "--station", action="store", type=int, help="Station number - i#")
     aparser.add_argument("-TC","--TideCoef", action="store_true", help="Use TXPO tidal coefficients for location") 
+    aparser.add_argument("-TPXO_d","--TPXO_dir", action="store", type=str, help="TPXO netCDF directory")
 
     aparser.add_argument("-start", "--start", action="store", type=str, help="Start Date (yyyy-mm-dd)")
     aparser.add_argument("-end", "--end", action="store", type=str, help="End Date (yyyy-mm-dd)")
@@ -410,73 +415,47 @@ def main():
         else:
             datum_percentage = 0.1
         
-        if args.TideCoef:
-           # Imperfect solution in order to get maximum tide and datum
-           # 1. Generate list of date & time for 1 year at 15 minute resolution
-           dts = (pd.DataFrame(columns=['NULL'],index=pd.date_range('2019-01-01T00:00:00Z', '2020-01-01T00:00:00Z',freq='60T')).between_time('00:00','23:59').index.strftime('%Y-%m-%d %H:%M:%S').tolist())
-           dts_ = (pd.DataFrame(columns=['NULL'],index=pd.date_range('2019-01-01T00:00:00Z', '2020-01-01T00:00:00Z',freq='60T')).between_time('00:00','23:59').index.strftime('%Y/%m/%d %H:%M:%S').tolist())
-           tidetime = pd.to_datetime(dts)
-           time = mdates.date2num(tidetime.to_pydatetime())
-           # Get tidal coefficients from TPXO model
-           # This bit isn't working properly - likely error is in the Tidal coefficient database
-           # Need to write code which looks at the TPXO netcdf files stored in /data/sthenno1/backup/pica/data/TPXO/DATA
-           print('     using global model (TPXO) for tidal coefficients')
-           #c = get_TidalCoef.get_TidalCoef(geo_location, time[0])
-           c = get_TidalCoef.get_TidalCoef('DUMMY', time[0])
-           # 2. Reconstruct the tide over that year
-           TCreconst = utide.reconstruct(time, c)
-           TL = TCreconst.h
-
-           df_tide_out = pd.DataFrame()
-           df_tide_out['Time'] = dts_
-           df_tide_out['Tide'] = TL
-           tidepath = os.getcwd() + "/Required/TideGauge/"
-           df_tide_out.to_csv(tidepath+"Output.csv", index=False, header=False)
-           
-           # Back calculate the tidal coefficients from TPXO gauge data 
-           #tide = np.array(TL, dtype=float)
-           #c = utide.solve(time, u=tide, v=None, lat=latitude_deg,
-           #                nodal=False,
-           #                trend=False,
-           #                method='ols',
-           #                conf_int='linear',
-           #                Rayleigh_min=0.95)
-
+        if args.TPXO_dir:
+           t_incr_m = np.int64(t_incr*60)
+           step = np.timedelta64(t_incr_m, 'm') # set stepsize
+           # set time range
+           times = np.arange(np.datetime64(start_date), np.datetime64(end_date) + step , step)
+           TL = tide_predict(args.TPXO_dir, latitude_deg,longitude_deg, times)
+           TL_TPXO = TL
         else:
-##         Read in tidal data 
-##         Tidal data from a variety of sources 
-##         1. PSMSL
-##            https://www.psmsl.org/data/
-##         2. University of Hawaii Sea Level Centre
-##            http://uhslc.soest.hawaii.edu/data/
-##         3. Generate data from the TPXO data files 
-##            https://tpxows.azurewebsites.net/  
-##            ==> generate weekly tidal data, multiple times and then create a ?_L1.csv file from about a month's worth of data
-##         Use routines found in the Tide_PrePro directory and create a suitable ?_L1.csv file
-##         Put data in Model/Required/TideGauge directory
+           ## Read in tidal data 
+           ## Tidal data from a variety of sources 
+           ## 1. PSMSL
+           ## https://www.psmsl.org/data/
+           ## 2. University of Hawaii Sea Level Centre
+           ## http://uhslc.soest.hawaii.edu/data/
+           ## 3. Generate data from the TPXO data files 
+           ## https://tpxows.azurewebsites.net/  
+           ## ==> generate weekly tidal data, multiple times and then create a ?_L1.csv file from about a month's worth of data
+           ## Use routines found in the Tide_PrePro directory and create a suitable ?_L1.csv file
+           ## Put data in Model/Required/TideGauge directory
 
-##         https://www.tide-forecast.com/ - good site for eyeballing how accurately the tide is recreated.
+           ##https://www.tide-forecast.com/ - good site for eyeballing how accurately the tide is recreated.
 
            print('     using tidegauge data for tidal coefficients')
            tidepath = os.getcwd() + "/Required/TideGauge/" + Tide_fname # path of data file output
            tides_ = pd.read_csv(tidepath, delimiter=',', engine='python') #usecols=np.arange(16,48), engine='python')
            df = pd.DataFrame(tides_)
            for i in range(len(tides_)):
-
-##          Convert/alter DataFrame Variables to type datetime and float
+           ## Convert/alter DataFrame Variables to type datetime and float
               tide_date = df.iloc[i,0]
               tide_level =df.iloc[i,1]
               tide_level = float(tide_level)
 
-##          Convert date to datetime format
+           ## Convert date to datetime format
               T = datetime.datetime.strptime(tide_date, '%Y/%m/%d %H:%M:%S') # All stations to a standard timestamp
-##          append variables to lists
+           ## append variables to lists
               TL.append(tide_level)
               t.append(T)
 
-##         Convert time back to DataFrame
+           ## Convert time back to DataFrame
            t_df = pd.to_datetime(t)
-##         Convert time to format of UTide ##'date2num' function only seems to work with pandas DF ##
+           ## Convert time to format of UTide ##'date2num' function only seems to work with pandas DF ##
            time = mdates.date2num(t_df.to_pydatetime())
 
            # Calculate the tidal coefficients from tide gauge data 
@@ -487,7 +466,6 @@ def main():
                            method='ols',
                            conf_int='linear',
                            Rayleigh_min=0.95)
-
 
            # 1. Generate list of date & time for time period of interest at 1 hour resolution
            dts = (pd.DataFrame(columns=['NULL'],index=pd.date_range(start_date, end_date,freq='60T')).between_time('00:00','23:59').index.strftime('%Y-%m-%d %H:%M:%S').tolist())
@@ -536,7 +514,8 @@ def main():
     ##############################################
     #      START TidalLight MODEL LOOP 
     ##############################################
-    month_counter = 0     
+    month_counter = 0 
+    TPXO_count = 0    
     # for delt in range(date_start, date_end):
     for model_date in daterange(date_start, date_end):
         year = model_date.year # Year in datetime format
@@ -788,18 +767,31 @@ def main():
                 # TIDAL CALCULATIONS  
 ########################################################
                 if args.tidal:
-                    date2 = datetime.datetime(year, month, day, hour, minute) # create new date variable
-                    date2 = str(date2) # convert to string
-                    fmt_date = datetime.datetime.strptime(date2, '%Y-%m-%d %H:%M:%S') # for some reason UTide requires it be converted back to a datetime before running
-                    tidetime = pd.to_datetime(fmt_date) # convert to dataframe
-                    tide_time = mdates.date2num(tidetime.to_pydatetime()) # mdates is the required format for UTide, this is the only way I managed to get the function to work
-                    reconst = utide.reconstruct(tide_time, c) # Reconstruct a tidal model for the selected date range using the constants 'c' determined by the tidal module
-                    tide_h.append(reconst.h) # retrieve tide height (sea level) and store in a list
-                    depth_to_datum = float(reconst.h - datum) # depth_to_datum = height of water column above datum
-                    if reconst.h<=datum:     
-                        depth_to_datum = float(0) 
-                    ftide_h.append(float(reconst.h))
-                    waterdepth.append(depth_to_datum)
+                    # The tide at the precise time points already calculated earlier in the model
+                    # for the TPXO data
+                    if args.TPXO_dir:
+                       tide_h.append(TL_TPXO[TPXO_count])
+                       depth_to_datum = float(TL_TPXO[TPXO_count] - datum) # depth_to_datum = height of water column above datum
+                       if TL_TPXO[TPXO_count]<=datum:
+                          depth_to_datum = float(0)
+                       ftide_h.append(TL_TPXO[TPXO_count])
+                       waterdepth.append(depth_to_datum) 
+                       TPXO_count += 1
+                    # Where tide gauge data has been used to back calculate the tidal harmonics
+                    # calculate the tide for the precise time points here
+                    else:
+                       date2 = datetime.datetime(year, month, day, hour, minute) # create new date variable
+                       date2 = str(date2) # convert to string
+                       fmt_date = datetime.datetime.strptime(date2, '%Y-%m-%d %H:%M:%S') # for some reason UTide requires it be converted back to a datetime before running
+                       tidetime = pd.to_datetime(fmt_date) # convert to dataframe
+                       tide_time = mdates.date2num(tidetime.to_pydatetime()) # mdates is the required format for UTide, this is the only way I managed to get the function to work
+                       reconst = utide.reconstruct(tide_time, c) # Reconstruct a tidal model for the selected date range using the constants 'c' determined by the tidal module
+                       tide_h.append(reconst.h) # retrieve tide height (sea level) and store in a list
+                       depth_to_datum = float(reconst.h - datum) # depth_to_datum = height of water column above datum
+                       if reconst.h<=datum:     
+                          depth_to_datum = float(0) 
+                       ftide_h.append(float(reconst.h))
+                       waterdepth.append(depth_to_datum)
                     
                     #kPAR = ((0.5+0.5*np.cos(2*np.pi*dday)/365))*0.1*reconst.h+0.4 # Old computation of diffusivity in atmosphere for PAR (Masters, 2004)
                     # need to update / append the value of Kd(s) for the output file
