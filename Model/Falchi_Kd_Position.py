@@ -73,9 +73,12 @@ def read_falchi(latitude, longitude, sky_condition, input_flag):
       m_blue = 4.530851872
       m_green = 7.272195079
       m_red = 6.372282777
-      c_blue = 59.57581038
-      c_green = 25.091669
-      c_red = 26.19770495
+      #c_blue = 59.57581038
+      #c_green = 25.091669
+      #c_red = 26.19770495
+      c_blue = 0.
+      c_green = 0.
+      c_red = 0.
 
    # From Batnes et al. (2015) - table 5
    thresh_irr_total_uW_m2 = 0.102 # in uW/m2 converted from uE/m2/s  

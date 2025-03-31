@@ -247,6 +247,7 @@ def main():
 
     # 0.000064692 = sr value for subtending angle of the lunar disc (0.26 degree semi-diameter --> sr)
     lun_sva = 0.000064692/np.pi 
+    d_moon = 3474.8 # Diameter of the moon (in km)
 
     ###################################### Select location ####################################################
     # Locations
@@ -300,6 +301,9 @@ def main():
         Tide_fname = "TideEilatGulf_L1.csv"
     elif geo_location == 'Site_80':
         latitude_deg = -5.06; longitude_deg = 119.329
+        Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
+    elif geo_location == 'Eindhoven':
+        latitude_deg = 51.422; longitude_deg = 5.409
         Tide_fname = "TideTokyo_L1.csv" # Dummy tide file
 
     #elif geo_location == 'Ruben_1':
@@ -702,6 +706,10 @@ def main():
                     albedo_phased = df_albedo_lunar['Broadband'].to_numpy()[0]*Phase_lb
                     # Iatmos in place of Isc - to correct for eccentricity of Earth (moon) orbit 
                     # Broadband top of atmosphere lunar 
+                    # Calculate the distance to moon in kilometers to calculate the lunar solid view angle
+                    D_earth_moon = EarthMoon.distance.to(u.km).value
+                    theta_moon = 2.*np.arctan(d_moon/(2.*D_earth_moon))
+                    lun_sva = 2.*(1 - np.cos(theta_moon/2))
                     Lunar_refl = PARTOA*lun_sva*albedo_phased*1000000. # convert from W/m^2 to uW/m^2  
                     airmass = get_air_mass_kasten_young(alt_)
                     if alt_<0:

@@ -32,8 +32,8 @@ START=`date --date='-1 day' +%Y-%m-%d`
 # End date
 END=`date --date='7 day' +%Y-%m-%d`
 
-#START="2023-01-01"
-#END="2023-06-30"
+START="2025-03-01"
+END="2025-07-01"
 
 ## loop through the locations array
 for location in "${locations[@]}"
